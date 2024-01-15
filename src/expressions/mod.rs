@@ -1,55 +1,14 @@
+use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
-use crate::expr::{Expr, Operation, Data, Evaluable};
 use crate::tokenizer::Token;
+use data::{Data, ExprLiteral, ExprBinary};
+use identifier::{ExprPath, ExprAssign, ExprMethod};
+use r#for::ExprFor;
 
+pub mod data;
 pub mod identifier;
 pub mod r#for;
-
-#[derive(Debug, Clone)]
-pub struct ExprLiteral {
-    data: Data
-}
-
-impl ExprLiteral {
-    pub fn new(data: Data) -> ExprLiteral {
-        ExprLiteral {
-            data
-        }
-    }
-}
-
-impl Evaluable for ExprLiteral {
-    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
-        self.data.clone()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ExprBinary {
-    operation: Operation,
-    lhs: Box<Expr>,
-    rhs: Box<Expr>
-}
-
-impl ExprBinary {
-    pub fn new(operation: Operation, lhs: Box<Expr>, rhs: Box<Expr>) -> ExprBinary {
-        ExprBinary {
-            operation,
-            lhs,
-            rhs
-        }
-    }
-}
-
-impl Evaluable for ExprBinary {
-    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
-        let mut lhs = self.lhs.eval(interpreter);
-        lhs.op(self.operation, &self.rhs.eval(interpreter)).unwrap();
-
-        lhs
-    }
-}
 
 pub fn parse_expr_data(parser: &mut Parser, first_token: &Token) -> Result<Box<Expr>, ParseErr> {
     if let Some(data) = first_token.to_data() {
@@ -61,6 +20,33 @@ pub fn parse_expr_data(parser: &mut Parser, first_token: &Token) -> Result<Box<E
         Token::Identifier(name) => identifier::parse(parser, name),
         Token::For => r#for::parse(parser),
         _ => Err(parser.unexpected_token("expression"))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Expr {
+    Literal(ExprLiteral),
+    Binary(ExprBinary),
+    Path(ExprPath),
+    Method(ExprMethod),
+    Assign(ExprAssign),
+    For(ExprFor)
+}
+
+pub trait Evaluable {
+    fn eval(&self, interpreter: &mut Interpreter) -> Data;
+}
+
+impl Expr {
+    pub fn eval(&self, interpreter: &mut Interpreter) -> Data {
+        match self {
+            Expr::Literal(literal_expr) => literal_expr.eval(interpreter),
+            Expr::Binary(binary_expr) => binary_expr.eval(interpreter),
+            Expr::Path(path_expr) => path_expr.eval(interpreter),
+            Expr::Method(expr_method) => expr_method.eval(interpreter),
+            Expr::Assign(assign_expr) => assign_expr.eval(interpreter),
+            Expr::For(for_expr) => for_expr.eval(interpreter)
+        }
     }
 }
 

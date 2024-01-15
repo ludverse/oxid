@@ -4,7 +4,7 @@ use crate::parser::{
     match_tree,
     Parser
 };
-use crate::expr::Expr;
+use crate::expressions::Expr;
 use crate::statements::Statement;
 
 #[derive(Debug, Clone)]

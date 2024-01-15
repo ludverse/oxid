@@ -1,4 +1,4 @@
-use crate::expr::{Data, Operation};
+use crate::expressions::data::{Operation, Data};
 
 pub struct ParseErr {
     err_kind: ParseErrKind,
@@ -15,7 +15,7 @@ impl ParseErr {
 pub enum ParseErrKind {
     UnexpectedToken(String, String),
     UnknownField(String),
-    InvalidOperation(Operation, Data, Data),
+    InvalidOperation(Operation, String, String),
 }
 
 impl ParseErrKind {
@@ -31,7 +31,7 @@ impl ParseErrKind {
         match self {
             ParseErrKind::UnexpectedToken(got, expected) => format!("expected {}, got {}", expected, got),
             ParseErrKind::UnknownField(field) => format!("unknown field `{}`", field),
-            ParseErrKind::InvalidOperation(operation, lhs, rhs) => format!("invalid {:?} on `{:?}` and `{:?}`", operation, lhs, rhs)
+            ParseErrKind::InvalidOperation(operation, lhs, rhs) => format!("invalid {:?} on `{}` and `{}`", operation, lhs, rhs)
         }
     }
 }

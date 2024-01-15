@@ -1,8 +1,11 @@
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
-use crate::expr::{Expr, Evaluable, Data};
+use crate::expressions::{Expr, Evaluable};
+use crate::expressions::data::Data;
 use crate::statements::Statement;
 use crate::tokenizer::Token;
+
+use super::data::ExprLiteral;
 
 #[derive(Debug, Clone)]
 pub struct ExprFor {
@@ -24,7 +27,7 @@ impl ExprFor {
 }
 
 impl Evaluable for ExprFor {
-    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> crate::expr::Data {
+    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
         let start_i = self.start_i.eval(interpreter);
         let end_i = self.end_i.eval(interpreter);
 
@@ -60,6 +63,9 @@ pub fn parse(parser: &mut Parser) -> Result<Box<Expr>, ParseErr> {
 
                         match parser.collector.next() {
                             Token::LeftCurly => {
+                                let i_val = Expr::Literal(ExprLiteral::new(Data::Number(0.)));
+                                parser.sim_memory.insert(index_var.to_string(), Box::new(i_val));
+
                                 let body = parser.parse_block()?;
                                 let for_expr = ExprFor::new(start_expr, end_expr, index_var.to_string(), body);
 

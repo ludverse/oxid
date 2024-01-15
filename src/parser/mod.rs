@@ -1,16 +1,9 @@
 use std::collections::HashMap;
 
-use crate::expressions::{parse_expr_data, ExprBinary};
-use crate::tokenizer::{
-    Token,
-    TokenVec
-};
-use crate::report_pos;
-use crate::statements::{
-    Statement,
-    Program, parse_statement
-};
-use crate::expr::{Expr, Operation};
+use crate::expressions::{parse_expr_data, Expr};
+use crate::expressions::data::ExprBinary;
+use crate::tokenizer::Token;
+use crate::statements::{Statement, Program, parse_statement};
 use crate::errors::{ParseErrKind, ParseErr};
 pub use token_collectior::TokenCollector;
 

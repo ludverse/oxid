@@ -1,12 +1,7 @@
-use std::collections::HashMap;
 use std::fmt::Debug;
 use crate::errors::{ParseErr, ParseErrKind};
-use crate::expressions::{ExprLiteral, ExprBinary};
-use crate::expressions::identifier::{ExprAssign, ExprMethod, ExprPath};
-use crate::expressions::r#for::ExprFor;
-use crate::interpreter::Interpreter;
-use crate::statements::Statement;
 use crate::tokenizer::Token;
+use crate::expressions::{Evaluable, Expr};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Operation {
@@ -48,7 +43,7 @@ impl Data {
         };
 
         match do_return_compatability_err {
-            true => Err(ParseErrKind::InvalidOperation(Operation::Add, self.clone(), rhs.clone())),
+            true => Err(ParseErrKind::InvalidOperation(Operation::Add, format!("{:?}", self), format!("{:?}", rhs))),
             false => Ok(())
         }
     }
@@ -62,29 +57,47 @@ impl Data {
 }
 
 #[derive(Debug, Clone)]
-pub enum Expr {
-    Literal(ExprLiteral),
-    Binary(ExprBinary),
-    Path(ExprPath),
-    Method(ExprMethod),
-    Assign(ExprAssign),
-    For(ExprFor)
+pub struct ExprLiteral {
+    data: Data
 }
 
-pub trait Evaluable {
-    fn eval(&self, interpreter: &mut Interpreter) -> Data;
-}
-
-impl Expr {
-    pub fn eval(&self, interpreter: &mut Interpreter) -> Data {
-        match self {
-            Expr::Literal(literal_expr) => literal_expr.eval(interpreter),
-            Expr::Binary(binary_expr) => binary_expr.eval(interpreter),
-            Expr::Path(path_expr) => path_expr.eval(interpreter),
-            Expr::Method(expr_method) => unimplemented!(),
-            Expr::Assign(assign_expr) => assign_expr.eval(interpreter),
-            Expr::For(for_expr) => for_expr.eval(interpreter)
+impl ExprLiteral {
+    pub fn new(data: Data) -> ExprLiteral {
+        ExprLiteral {
+            data
         }
+    }
+}
+
+impl Evaluable for ExprLiteral {
+    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
+        self.data.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ExprBinary {
+    operation: Operation,
+    lhs: Box<Expr>,
+    rhs: Box<Expr>
+}
+
+impl ExprBinary {
+    pub fn new(operation: Operation, lhs: Box<Expr>, rhs: Box<Expr>) -> ExprBinary {
+        ExprBinary {
+            operation,
+            lhs,
+            rhs
+        }
+    }
+}
+
+impl Evaluable for ExprBinary {
+    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
+        let mut lhs = self.lhs.eval(interpreter);
+        lhs.op(self.operation, &self.rhs.eval(interpreter)).unwrap();
+
+        lhs
     }
 }
 

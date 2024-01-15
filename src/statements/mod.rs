@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::errors::ParseErr;
-use crate::expr::Expr;
+use crate::expressions::Expr;
 use crate::parser::Parser;
 use crate::tokenizer::Token;
 
