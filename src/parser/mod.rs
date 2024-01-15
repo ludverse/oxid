@@ -82,7 +82,6 @@ impl<'a> Parser<'a> {
 
         for i in 0..1_000_000 {
             let next_token = self.collector.next();
-            dbg!(next_token);
             match next_token {
                 Token::EOF => return Program::new(statements),
                 _ => {

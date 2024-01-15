@@ -13,9 +13,11 @@ impl ParseErr {
 
 #[derive(Debug)]
 pub enum ParseErrKind {
+    UnexpectedChar(char),
     UnexpectedToken(String, String),
     UnknownField(String),
     InvalidOperation(Operation, String, String),
+    UnmatchedDelimiter(char)
 }
 
 impl ParseErrKind {
@@ -29,9 +31,11 @@ impl ParseErrKind {
 
     fn err_msg(&self) -> String {
         match self {
+            ParseErrKind::UnexpectedChar(c) => format!("unexpected character `{}`", c),
             ParseErrKind::UnexpectedToken(got, expected) => format!("expected {}, got {}", expected, got),
             ParseErrKind::UnknownField(field) => format!("unknown field `{}`", field),
-            ParseErrKind::InvalidOperation(operation, lhs, rhs) => format!("invalid {:?} on `{}` and `{}`", operation, lhs, rhs)
+            ParseErrKind::InvalidOperation(operation, lhs, rhs) => format!("invalid {:?} on `{}` and `{}`", operation, lhs, rhs),
+            ParseErrKind::UnmatchedDelimiter(c) => format!("unmatched delimiter `{}`", c),
         }
     }
 }

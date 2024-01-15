@@ -1,4 +1,4 @@
-use crate::report_pos;
+use crate::errors::ParseErrKind;
 use crate::expressions::data::{
     Operation,
     Data
@@ -114,7 +114,8 @@ impl Token {
                 }
 
                 if current_char.is_none() {
-                    report_pos(302, "unmatched delimiter `\"`".to_string(), start_byte_i);
+                    // we gotta handle this sometime later
+                    ParseErrKind::UnmatchedDelimiter('"').to_err(start_byte_i).report();
                 }
 
                 let string = &buf[1..token_len - 1].to_string();
@@ -163,7 +164,8 @@ impl Token {
                         _ => Token::Identifier(name.to_string())
                     }
                 } else {
-                    report_pos(301, format!("unexpected character: `{}`", first_char), start_byte_i);
+                    // we gotta handle this sometime later
+                    ParseErrKind::UnexpectedChar(first_char).to_err(start_byte_i).report();
                 }
             }
         };

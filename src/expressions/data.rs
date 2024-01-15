@@ -8,7 +8,7 @@ pub enum Operation {
     Add,
     Sub,
     Mul,
-    Div,
+    Div
 }
 
 #[derive(Debug, Clone)]

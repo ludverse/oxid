@@ -23,11 +23,3 @@ impl Config {
     }
 }
 
-pub fn report(err_code: i32, err_msg: String) -> ! {
-    panic!("[{}] error: {}", err_code, err_msg)
-}
-
-pub fn report_pos(err_code: i32, err_msg: String, char_pos: usize) -> ! {
-    panic!("[{}] error (char: {}): {}", err_code, char_pos, err_msg)
-}
-

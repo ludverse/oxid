@@ -31,8 +31,6 @@ impl Interpreter {
                 None => break
             }
 
-            dbg!(&self.memory);
-
             program_counter += 1;
         }
     }
