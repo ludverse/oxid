@@ -10,10 +10,10 @@ pub mod data;
 pub mod identifier;
 pub mod r#for;
 
-pub fn parse_expr_data(parser: &mut Parser, first_token: &Token) -> Result<Box<Expr>, ParseErr> {
+pub fn parse_expr_data(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
     if let Some(data) = first_token.to_data() {
         let literal_expr = ExprLiteral::new(data);
-        return Ok(Box::new(Expr::Literal(literal_expr)));
+        return Ok(Expr::Literal(literal_expr));
     }
     
     match first_token {

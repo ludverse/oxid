@@ -10,12 +10,12 @@ use crate::statements::Statement;
 #[derive(Debug, Clone)]
 pub struct VariableAssignment {
     pub name: String,
-    pub init_value: Box<Expr>,
+    pub init_value: Expr,
     pub is_mut: bool
 }
 
 impl VariableAssignment {
-    fn new(name: String, init_value: Box<Expr>, is_mut: bool) -> VariableAssignment {
+    fn new(name: String, init_value: Expr, is_mut: bool) -> VariableAssignment {
         VariableAssignment {
             name,
             init_value,

@@ -21,7 +21,7 @@ pub(crate) use match_tree;
 
 pub struct Parser<'a> {
     pub collector: TokenCollector<'a>,
-    pub sim_memory: HashMap<String, Box<Expr>>
+    pub sim_memory: HashMap<String, Expr>
 }
 
 impl<'a> Parser<'a> {
@@ -39,21 +39,21 @@ impl<'a> Parser<'a> {
         ParseErrKind::UnexpectedToken(format!("{:?}", token), expected.to_string()).to_err(pos)
     }
 
-    pub fn parse_expr(&mut self, first_token: &Token) -> Result<Box<Expr>, ParseErr> {
-        let mut left = parse_expr_data(self, first_token)?;
+    pub fn parse_expr(&mut self, first_token: &Token) -> Result<Expr, ParseErr> {
+        let mut left = Box::new(parse_expr_data(self, first_token)?);
 
         for i in 0..=1_000_000 {
             let operation = self.collector.next();
             match operation.to_operation() {
                 Some(operation) => {
                     let expr_token = self.collector.next();
-                    let right = parse_expr_data(self, expr_token)?;
+                    let right = Box::new(parse_expr_data(self, expr_token)?);
 
                     left = Box::new(Expr::Binary(ExprBinary::new(operation, left, right)));
                 },
                 None => {
                     self.collector.back();
-                    return Ok(left)
+                    return Ok(*left)
                 }
             }
         }

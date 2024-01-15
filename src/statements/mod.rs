@@ -40,6 +40,6 @@ impl Program {
 #[derive(Debug, Clone)]
 pub enum Statement {
     VariableAssignment(r#let::VariableAssignment),
-    Expr(Box<Expr>)
+    Expr(Expr)
 }
 

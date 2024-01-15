@@ -75,7 +75,7 @@ impl Evaluable for ExprAssign {
     }
 }
 
-pub fn parse(parser: &mut Parser, name: &String) -> Result<Box<Expr>, ParseErr> {
+pub fn parse(parser: &mut Parser, name: &String) -> Result<Expr, ParseErr> {
     match parser.collector.next() {
         Token::Equal => {
             let expr_token = parser.collector.next();
@@ -84,7 +84,7 @@ pub fn parse(parser: &mut Parser, name: &String) -> Result<Box<Expr>, ParseErr> 
             if !parser.sim_memory.contains_key(name) {
                 return Err(ParseErrKind::UnknownField(name.to_string()).to_err(parser.collector.current_pos()));
             }
-            Ok(Box::new(Expr::Assign(ExprAssign::new(vec![name.to_string()], expr))))
+            Ok(Expr::Assign(ExprAssign::new(vec![name.to_string()], Box::new(expr))))
         },
         Token::LeftParen => {
             let expr_token = parser.collector.next();
@@ -95,7 +95,7 @@ pub fn parse(parser: &mut Parser, name: &String) -> Result<Box<Expr>, ParseErr> 
                     if name != "println" {
                         return Err(ParseErrKind::UnknownField(name.to_string()).to_err(parser.collector.current_pos()));
                     }
-                    Ok(Box::new(Expr::Method(ExprMethod::new(vec![name.to_string()], vec![arg_expr]))))
+                    Ok(Expr::Method(ExprMethod::new(vec![name.to_string()], vec![Box::new(arg_expr)])))
                 },
                 _ => Err(parser.unexpected_token("RightParen"))
             }
@@ -106,7 +106,7 @@ pub fn parse(parser: &mut Parser, name: &String) -> Result<Box<Expr>, ParseErr> 
             if !parser.sim_memory.contains_key(name) {
                 return Err(ParseErrKind::UnknownField(name.to_string()).to_err(parser.collector.current_pos()));
             }
-            Ok(Box::new(Expr::Path(ExprPath::new(vec![name.to_string()]))))
+            Ok(Expr::Path(ExprPath::new(vec![name.to_string()])))
         }
     }
 }

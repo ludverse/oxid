@@ -49,7 +49,7 @@ impl Evaluable for ExprFor {
     }
 }
 
-pub fn parse(parser: &mut Parser) -> Result<Box<Expr>, ParseErr> {
+pub fn parse(parser: &mut Parser) -> Result<Expr, ParseErr> {
     match parser.collector.next() {
         Token::Identifier(index_var) => match parser.collector.next() {
             Token::In => {
@@ -64,12 +64,12 @@ pub fn parse(parser: &mut Parser) -> Result<Box<Expr>, ParseErr> {
                         match parser.collector.next() {
                             Token::LeftCurly => {
                                 let i_val = Expr::Literal(ExprLiteral::new(Data::Number(0.)));
-                                parser.sim_memory.insert(index_var.to_string(), Box::new(i_val));
+                                parser.sim_memory.insert(index_var.to_string(), i_val);
 
                                 let body = parser.parse_block()?;
-                                let for_expr = ExprFor::new(start_expr, end_expr, index_var.to_string(), body);
+                                let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
 
-                                Ok(Box::new(Expr::For(for_expr)))
+                                Ok(Expr::For(for_expr))
                             },
                             _ => Err(parser.unexpected_token("LeftCurly"))
                         }
