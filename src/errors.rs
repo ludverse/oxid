@@ -1,4 +1,4 @@
-use crate::expressions::data::{Operation, Data};
+use crate::data::{Operation, Data};
 
 pub struct ParseErr {
     err_kind: ParseErrKind,

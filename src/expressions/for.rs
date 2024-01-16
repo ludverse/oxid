@@ -1,11 +1,10 @@
+use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
 use crate::expressions::{Expr, Evaluable};
-use crate::expressions::data::Data;
+use crate::data::{Data, ExprLiteral};
 use crate::statements::Statement;
 use crate::tokenizer::Token;
-
-use super::data::ExprLiteral;
 
 #[derive(Debug, Clone)]
 pub struct ExprFor {
@@ -27,7 +26,7 @@ impl ExprFor {
 }
 
 impl Evaluable for ExprFor {
-    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
+    fn eval(&self, interpreter: &mut Interpreter) -> Data {
         let start_i = self.start_i.eval(interpreter);
         let end_i = self.end_i.eval(interpreter);
 

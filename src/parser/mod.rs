@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::expressions::{parse_expr_data, Expr};
-use crate::expressions::data::ExprBinary;
+use crate::data::ExprBinary;
 use crate::tokenizer::Token;
 use crate::statements::{Statement, Program, parse_statement};
 use crate::errors::{ParseErrKind, ParseErr};

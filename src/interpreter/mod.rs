@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::statements::{Program, Statement};
-use crate::expressions::data::Data;
+use crate::data::Data;
 
 pub struct Interpreter {
     pub program: Program,

@@ -1,8 +1,6 @@
 use crate::errors::ParseErrKind;
-use crate::expressions::data::{
-    Operation,
-    Data
-};
+use crate::data::{Operation, Data};
+use crate::expressions::identifier::AssignOp;
 
 pub type TokenVec = Vec<(usize, Token)>;
 
@@ -179,19 +177,29 @@ impl Token {
 
     pub fn to_data(&self) -> Option<Data> {
         match self {
-            Self::String(val) => Some(Data::String(val.to_string())),
-            Self::Number(val) => Some(Data::Number(*val)),
-            Self::Bool(val) => Some(Data::Bool(*val)),
+            Token::String(val) => Some(Data::String(val.to_string())),
+            Token::Number(val) => Some(Data::Number(*val)),
+            Token::Bool(val) => Some(Data::Bool(*val)),
             _ => None
         }
     }
 
     pub fn to_operation(&self) -> Option<Operation> {
         match self {
-            Self::Plus => Some(Operation::Add),
-            Self::Minus => Some(Operation::Sub),
-            Self::Star => Some(Operation::Mul),
-            Self::Slash => Some(Operation::Div),
+            Token::Plus => Some(Operation::Add),
+            Token::Minus => Some(Operation::Sub),
+            Token::Star => Some(Operation::Mul),
+            Token::Slash => Some(Operation::Div),
+            Token::Remainder => Some(Operation::Rem),
+            Token::EqualEqual => Some(Operation::Eq),
+            _ => None
+        }
+    }
+
+    pub fn to_assign_op(&self) -> Option<AssignOp> {
+        match self {
+            Token::Equal => Some(AssignOp::Eq),
+            Token::PlusEqual => Some(AssignOp::AddEq),
             _ => None
         }
     }

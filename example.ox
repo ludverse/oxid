@@ -1,11 +1,12 @@
-let x = 0;
-let y = 1;
-let z = 0;
 
-for i in 0..6 {
-    z = x + y;
-    println(z);
+for i in 1..31 {
+    let out = "";
 
-    x = y;
-    y = z;
-};
+    if i % 3 == 0 { out += "Fizz" };
+    if i % 5 == 0 { out += "Buzz" };
+
+    if out == "" { out = i };
+
+    println(out);
+}
+
