@@ -1,12 +1,12 @@
 use std::process::ExitCode;
 use std::fs;
 use std::env;
-use oxid_language::Config;
-use oxid_language::interpreter::Interpreter;
-use oxid_language::parser::TokenCollector;
-use oxid_language::tokenizer::tokenize;
-use oxid_language::parser::Parser;
-use oxid_language::statements::Statement;
+use oxid::Config;
+use oxid::interpreter::Interpreter;
+use oxid::parser::TokenCollector;
+use oxid::tokenizer::tokenize;
+use oxid::parser::Parser;
+use oxid::statements::Statement;
 
 fn main() -> ExitCode {
     let mut args = env::args();
