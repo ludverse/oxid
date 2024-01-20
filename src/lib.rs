@@ -5,6 +5,8 @@ pub mod interpreter;
 pub mod statements;
 pub mod expressions;
 pub mod data;
+pub mod operations;
+pub mod types;
 pub mod errors;
 
 pub struct Config {

@@ -1,5 +1,6 @@
 use crate::errors::ParseErrKind;
-use crate::data::{Operation, Data};
+use crate::data::Data;
+use crate::operations::Operation;
 use crate::expressions::identifier::AssignOp;
 
 pub type TokenVec = Vec<(usize, Token)>;

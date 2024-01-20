@@ -1,27 +1,29 @@
 use std::collections::HashMap;
 
-use crate::expressions::{parse_expr_data, Expr};
-use crate::data::ExprBinary;
 use crate::tokenizer::Token;
-use crate::statements::{Statement, Program, parse_statement};
+use crate::statements::Statement;
 use crate::errors::{ParseErrKind, ParseErr};
+use crate::types::Type;
 pub use token_collectior::TokenCollector;
 
 mod token_collectior;
 
-macro_rules! match_tree {
-    ($a:expr, $b:pat, $c:expr, $d:expr, $e:expr) => {
-        match $a {
-            $b => $e,
-            _ => Err($c.unexpected_token($d))
+#[derive(Debug)]
+pub struct Program {
+    pub body: Vec<Statement>
+}
+
+impl Program {
+    pub fn new(body: Vec<Statement>) -> Program {
+        Program {
+            body
         }
     }
 }
-pub(crate) use match_tree;
 
 pub struct Parser<'a> {
     pub collector: TokenCollector<'a>,
-    pub sim_memory: HashMap<String, Expr>
+    pub sim_memory: HashMap<String, Type>
 }
 
 impl<'a> Parser<'a> {
@@ -39,53 +41,15 @@ impl<'a> Parser<'a> {
         ParseErrKind::UnexpectedToken(format!("{:?}", token), expected.to_string()).to_err(pos)
     }
 
-    pub fn parse_expr(&mut self, first_token: &Token) -> Result<Expr, ParseErr> {
-        let mut left = Box::new(parse_expr_data(self, first_token)?);
-
-        for i in 0..=1_000_000 {
-            let operation = self.collector.next();
-            match operation.to_operation() {
-                Some(operation) => {
-                    let expr_token = self.collector.next();
-                    let right = Box::new(parse_expr_data(self, expr_token)?);
-
-                    left = Box::new(Expr::Binary(ExprBinary::new(operation, left, right)));
-                },
-                None => {
-                    self.collector.back();
-                    return Ok(*left)
-                }
-            }
-        }
-
-        panic!("loop never breaked");
-    }
-
-    pub fn parse_block(&mut self) -> Result<Vec<Statement>, ParseErr> {
-        let mut statements = vec![];
-
-        for i in 0..1_000_000 {
-            let next_token = self.collector.next();
-            match next_token {
-                Token::RightCurly => return Ok(statements),
-                _ => {
-                    statements.push(parse_statement(self, next_token)?);
-                }
-            }
-        }
-
-        panic!("loop never breaked");
-    }
-
     pub fn generate_program(&mut self) -> Program {
         let mut statements = vec![];
 
-        for i in 0..1_000_000 {
+        for _ in 0..1_000_000 {
             let next_token = self.collector.next();
             match next_token {
                 Token::EOF => return Program::new(statements),
                 _ => {
-                    let statement = parse_statement(self, next_token).unwrap_or_else(|err| err.report());
+                    let statement = Statement::parse(self, next_token).unwrap_or_else(|err| err.report());
                     statements.push(statement);
                 }
             }

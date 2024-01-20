@@ -1,21 +1,22 @@
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
-use crate::expressions::{Expr, Evaluable};
+use crate::expressions::{Expr, Evaluable, ExprBlock};
 use crate::data::{Data, ExprLiteral};
 use crate::statements::Statement;
 use crate::tokenizer::Token;
+use crate::types::Type;
 
 #[derive(Debug, Clone)]
 pub struct ExprFor {
     pub start_i: Box<Expr>,
     pub end_i: Box<Expr>,
     pub index_var: String,
-    pub body: Vec<Statement>
+    pub body: ExprBlock
 }
 
 impl ExprFor {
-    pub fn new(start_i: Box<Expr>, end_i: Box<Expr>, index_var: String, body: Vec<Statement>) -> ExprFor {
+    pub fn new(start_i: Box<Expr>, end_i: Box<Expr>, index_var: String, body: ExprBlock) -> ExprFor {
         ExprFor {
             start_i,
             end_i,
@@ -26,6 +27,11 @@ impl ExprFor {
 }
 
 impl Evaluable for ExprFor {
+    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+        Ok(Type::TempNil)
+    }
+
+
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
         let start_i = self.start_i.eval(interpreter);
         let end_i = self.end_i.eval(interpreter);
@@ -36,7 +42,8 @@ impl Evaluable for ExprFor {
                     Data::Number(end_i) => {
                         for i in start_i as usize..end_i as usize {
                             interpreter.memory.insert(self.index_var.to_string(), Data::Number(i as f64));
-                            interpreter.interpret_block(&self.body);
+
+                            self.body.eval(interpreter);
                         }
                     },
                     _ => ()
@@ -44,7 +51,8 @@ impl Evaluable for ExprFor {
             },
             _ => ()
         }
-        Data::Number(0.)
+
+        Data::TempNil
     }
 }
 
@@ -53,19 +61,19 @@ pub fn parse(parser: &mut Parser) -> Result<Expr, ParseErr> {
         Token::Identifier(index_var) => match parser.collector.next() {
             Token::In => {
                 let next_token = parser.collector.next();
-                let start_expr = parser.parse_expr(next_token)?;
+                let start_expr = Expr::parse_expr(parser, next_token)?;
 
                 match parser.collector.next() {
                     Token::Range => {
                         let next_token = parser.collector.next();
-                        let end_expr = parser.parse_expr(next_token)?;
+                        let end_expr = Expr::parse_expr(parser, next_token)?;
 
                         match parser.collector.next() {
                             Token::LeftCurly => {
-                                let i_val = Expr::Literal(ExprLiteral::new(Data::Number(0.)));
-                                parser.sim_memory.insert(index_var.to_string(), i_val);
+                                parser.sim_memory.insert(index_var.to_string(), Type::Number);
 
-                                let body = parser.parse_block()?;
+                                let next_token = parser.collector.next();
+                                let body = ExprBlock::parse_block(parser, next_token)?;
                                 let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
 
                                 Ok(Expr::For(for_expr))

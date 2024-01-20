@@ -1,50 +1,27 @@
 use std::fmt::Debug;
 use crate::errors::{ParseErr, ParseErrKind};
 use crate::interpreter::Interpreter;
-use crate::tokenizer::Token;
+use crate::operations::Operation;
+use crate::parser::Parser;
 use crate::expressions::{Evaluable, Expr};
-
-mod add;
-mod rem;
-mod eq;
-
-#[derive(Debug, Clone, Copy)]
-pub enum Operation {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-    Eq
-}
+use crate::types::Type;
 
 #[derive(Debug, Clone)]
 pub enum Data {
     String(String),
     Number(f64),
-    Bool(bool)
+    Bool(bool),
+    TempNil // just a temporary null value in the meantime as we dont have empty tuples yet
 }
 
 impl Data {
-    pub fn to_token_type(&self) -> Token {
+    pub fn to_type(&self) -> Type {
         match self {
-            Data::String(val) => Token::String(val.to_string()),
-            Data::Number(val) => Token::Number(*val),
-            Data::Bool(val) => Token::Bool(*val)
+            Data::String(val) => Type::String,
+            Data::Number(val) => Type::Number,
+            Data::Bool(val) => Type::Bool,
+            Data::TempNil => Type::TempNil
         }
-    }
-
-    pub fn op(&self, op: Operation, rhs: &Data) -> Result<Data, ParseErrKind> {
-        match op {
-            Operation::Add => self.add(rhs),
-            Operation::Rem => self.rem(rhs),
-            Operation::Eq => self.eq(rhs),
-            _ => unimplemented!()
-        }
-    }
-
-    fn illegal_operation(&self, op: Operation, rhs: &Data) -> ParseErrKind {
-        ParseErrKind::InvalidOperation(op, format!("{:?}", self), format!("{:?}", rhs))
     }
 }
 
@@ -62,6 +39,10 @@ impl ExprLiteral {
 }
 
 impl Evaluable for ExprLiteral {
+    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+        Ok(self.data.to_type())
+    }
+
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
         self.data.clone()
     }
@@ -85,9 +66,18 @@ impl ExprBinary {
 }
 
 impl Evaluable for ExprBinary {
-    fn eval(&self, interpreter: &mut crate::interpreter::Interpreter) -> Data {
+    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+        let lhs = self.lhs.get_type(parser)?;
+        let rhs = self.rhs.get_type(parser)?;
+
+        self.operation.typ(&lhs, &rhs)
+    }
+
+    fn eval(&self, interpreter: &mut Interpreter) -> Data {
         let lhs = self.lhs.eval(interpreter);
-        lhs.op(self.operation, &self.rhs.eval(interpreter)).unwrap()
+        let rhs = self.rhs.eval(interpreter);
+
+        self.operation.op(&lhs, &rhs)
     }
 }
 
