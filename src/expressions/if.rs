@@ -24,7 +24,11 @@ impl ExprIf {
 
 impl Evaluable for ExprIf {
     fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        self.body.get_type(parser)
+        // self.body.get_type(parser)
+        //
+        // when we implement else clauses we can start returning values
+
+        Ok(Type::TempNil)
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -33,10 +37,9 @@ impl Evaluable for ExprIf {
         match condition_expr {
             Data::Bool(val) => {
                 if val {
-                    self.body.eval(interpreter)
-                } else {
-                    Data::TempNil
+                    self.body.eval(interpreter);
                 }
+                Data::TempNil
             },
             _ => panic!("temp")
         }

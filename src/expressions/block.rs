@@ -19,7 +19,7 @@ impl ExprBlock {
         }
     }
 
-    fn parse_block_end(parser: &mut Parser, first_token: &Token) -> Result<ExprBlock, ParseErr> {
+    fn parse_block_statements(parser: &mut Parser) -> Result<ExprBlock, ParseErr> {
         let mut body = vec![];
 
         for i in 0..=1_000_000 {
@@ -37,7 +37,7 @@ impl ExprBlock {
 
     pub fn parse_block(parser: &mut Parser, first_token: &Token) -> Result<ExprBlock, ParseErr> {
         match first_token {
-            Token::LeftCurly => Self::parse_block_end(parser, first_token),
+            Token::LeftCurly => ExprBlock::parse_block_statements(parser),
             _ => Err(parser.unexpected_token("LeftCurly"))
         }
     }
@@ -74,7 +74,6 @@ impl Evaluable for ExprBlock {
 }
 
 pub fn parse(parser: &mut Parser) -> Result<Expr, ParseErr> {
-    let first_token = parser.collector.next();
-    ExprBlock::parse_block_end(parser, first_token)
+    ExprBlock::parse_block_statements(parser)
         .map(|block_expr| Expr::Block(block_expr))
 }

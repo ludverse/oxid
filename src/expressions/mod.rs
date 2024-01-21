@@ -81,20 +81,33 @@ impl Expr {
     }
 
     pub fn parse_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
-        let mut left = Box::new(Expr::parse_token_expr(parser, first_token)?);
+        let mut lhs_pos = parser.collector.current_pos();
+        let mut lhs = Box::new(Expr::parse_token_expr(parser, first_token)?);
+        let mut lhs_type = lhs.get_type(parser)
+            .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
 
         for i in 0..=1_000_000 {
             let operation = parser.collector.next();
             match operation.to_operation() {
                 Some(operation) => {
-                    let next_token = parser.collector.next();
-                    let right = Box::new(Expr::parse_token_expr(parser, next_token)?);
+                    let rhs_token = parser.collector.next();
+                    let rhs_pos = parser.collector.current_pos();
 
-                    left = Box::new(Expr::Binary(ExprBinary::new(operation, left, right)));
+                    let rhs = Box::new(Expr::parse_token_expr(parser, rhs_token)?);
+                    let rhs_type = rhs.get_type(parser)
+                        .map_err(|err_kind| err_kind.to_err(rhs_pos))?;
+
+                    operation.typ(&lhs_type, &rhs_type)
+                        .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
+
+                    lhs_pos = rhs_pos;
+                    lhs = Box::new(Expr::Binary(ExprBinary::new(operation, lhs, rhs)));
+                    lhs_type = lhs.get_type(parser)
+                        .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
                 },
                 None => {
                     parser.collector.back();
-                    return Ok(*left)
+                    return Ok(*lhs)
                 }
             }
         }
