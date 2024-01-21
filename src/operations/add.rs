@@ -4,11 +4,11 @@ use crate::types::Type;
 pub fn typ(lhs: &Type, rhs: &Type) -> Option<Type> {
     match lhs {
         Type::String => match rhs {
-            Type::String => Some(Type::Bool),
+            Type::String => Some(Type::String),
             _ => None
         },
         Type::Number => match rhs {
-            Type::Number => Some(Type::Bool),
+            Type::Number => Some(Type::Number),
             _ => None
         },
         _ => None

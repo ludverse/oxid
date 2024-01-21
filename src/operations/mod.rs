@@ -7,7 +7,7 @@ pub mod add;
 pub mod sub;
 pub mod rem;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Operation {
     Eq,
     Add,
@@ -42,3 +42,6 @@ impl Operation {
         res.expect("invalid operation slipped through to the interpreter after a valid operation check")
     }
 }
+
+#[cfg(test)]
+mod tests;

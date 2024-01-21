@@ -1,6 +1,7 @@
 let a = if false { 8 };
-let o = 4;
-let x = 5 + { " " o = 8 };
+
+let ok = "" + "";
+let x = 1 + 2 + ok;
 
 println(x)
 println(a)

@@ -128,3 +128,6 @@ impl ParseableStatement for Expr {
         Ok(Statement::Expr(expr))
     }
 }
+
+#[cfg(test)]
+mod tests;
