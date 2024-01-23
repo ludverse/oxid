@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::statements::r#fn::FunctionSignature;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::statements::Statement;
 use crate::errors::{ParseErrKind, ParseErr};
 use crate::types::Type;
@@ -37,11 +37,8 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn unexpected_token(&self, expected: &str) -> ParseErr {
-        let token = self.collector.current();
-        let pos = self.collector.current_pos();
-
-        ParseErrKind::UnexpectedToken(format!("{:?}", token), expected.to_string()).to_err(pos)
+    pub fn unexpected_token(&self, token: &Token, expected: &str) -> ParseErr {
+        ParseErrKind::UnexpectedToken(format!("{:?}", token.token), expected.to_string()).to_err(token.pos)
     }
 
     pub fn generate_program(&mut self) -> Program {
@@ -49,8 +46,8 @@ impl<'a> Parser<'a> {
 
         for _ in 0..1_000_000 {
             let next_token = self.collector.next();
-            match next_token {
-                Token::EOF => return Program::new(statements),
+            match next_token.token {
+                TokenType::EOF => return Program::new(statements),
                 _ => {
                     let statement = Statement::parse(self, next_token).unwrap_or_else(|err| err.report());
                     statements.push(statement);

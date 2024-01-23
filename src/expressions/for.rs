@@ -4,7 +4,7 @@ use crate::errors::{ParseErr, ParseErrKind};
 use crate::expressions::{Expr, Evaluable, ExprBlock};
 use crate::data::{Data, ExprLiteral};
 use crate::statements::Statement;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -56,37 +56,51 @@ impl Evaluable for ExprFor {
     }
 }
 
-pub fn parse(parser: &mut Parser) -> Result<Expr, ParseErr> {
-    match parser.collector.next() {
-        Token::Identifier(index_var) => match parser.collector.next() {
-            Token::In => {
-                let next_token = parser.collector.next();
-                let start_expr = Expr::parse_expr(parser, next_token)?;
+pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
+    let next_token = parser.collector.next();
+    match &next_token.token {
+        TokenType::Identifier(index_var) => {
 
-                match parser.collector.next() {
-                    Token::Range => {
-                        let next_token = parser.collector.next();
-                        let end_expr = Expr::parse_expr(parser, next_token)?;
+            let next_token = parser.collector.next();
+            match next_token.token {
+                TokenType::In => {
 
-                        match parser.collector.next() {
-                            Token::LeftCurly => {
-                                parser.sim_memory.insert(index_var.to_string(), Type::Number);
+                    let next_token = parser.collector.next();
+                    let start_expr = Expr::parse_expr(parser, next_token)?;
 
-                                let next_token = parser.collector.next();
-                                let body = ExprBlock::parse_block(parser, next_token)?;
-                                let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
+                    let next_token = parser.collector.next();
+                    match next_token.token {
+                        TokenType::Range => {
 
-                                Ok(Expr::For(for_expr))
-                            },
-                            _ => Err(parser.unexpected_token("LeftCurly"))
-                        }
-                    },
-                    _ => Err(parser.unexpected_token("Range"))
-                }
-            },
-            _ => Err(parser.unexpected_token("In"))
+                            let next_token = parser.collector.next();
+                            let end_expr = Expr::parse_expr(parser, next_token)?;
+
+                            let next_token = parser.collector.next();
+                            match next_token.token {
+                                TokenType::LeftCurly => {
+
+                                    parser.sim_memory.insert(index_var.to_string(), Type::Number);
+
+                                    let next_token = parser.collector.next();
+                                    let body = ExprBlock::parse_block(parser, next_token)?;
+                                    let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
+
+                                    Ok(Expr::For(for_expr))
+
+                                },
+                                _ => Err(parser.unexpected_token(next_token, "LeftCurly"))
+                            }
+
+                        },
+                        _ => Err(parser.unexpected_token(next_token, "Range"))
+                    }
+
+                },
+                _ => Err(parser.unexpected_token(next_token, "In"))
+            }
+
         },
-        _ => Err(parser.unexpected_token("variable name"))
+        _ => Err(parser.unexpected_token(next_token, "variable name"))
     }
 }
 

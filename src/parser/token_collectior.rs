@@ -1,15 +1,12 @@
-use crate::tokenizer::{
-    Token,
-    TokenVec
-};
+use crate::tokenizer::{Token, TokenType};
 
 pub struct TokenCollector<'a> {
-    pub tokens: &'a TokenVec,
+    pub tokens: &'a Vec<Token>,
     pub index: Option<usize>
 }
 
 impl<'a> TokenCollector<'a> {
-    pub fn new(tokens: &'a TokenVec) -> TokenCollector<'a> {
+    pub fn new(tokens: &'a Vec<Token>) -> TokenCollector<'a> {
         TokenCollector {
             tokens,
             index: None
@@ -23,7 +20,7 @@ impl<'a> TokenCollector<'a> {
             self.index = Some(0);
         }
 
-        &self.tokens.get(self.index.unwrap()).expect("try to call next after EOF").1
+        &self.tokens.get(self.index.unwrap()).expect("try to call next after EOF")
     }
 
     // NOTE if you're able to not use this function by for example adding a `next_token` argument
@@ -37,17 +34,12 @@ impl<'a> TokenCollector<'a> {
             self.index = None;
         }
 
-        Some(&self.tokens.get(self.index.unwrap()).expect("try to call back after EOF").1)
+        Some(&self.tokens.get(self.index.unwrap()).expect("try to call back after EOF"))
     }
 
     // ! only for use with error messages
     pub fn current(&self) -> &'a Token {
-        &self.tokens.get(self.index.unwrap()).unwrap().1
-    }
-
-    // ! only for use with error messages
-    pub fn current_pos(&self) -> usize {
-        self.tokens.get(self.index.unwrap()).unwrap().0
+        &self.tokens.get(self.index.unwrap()).unwrap()
     }
 }
 

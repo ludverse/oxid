@@ -1,8 +1,8 @@
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::errors::{ParseErr, ParseErrKind};
+use crate::errors::{ParseErr, ParseErrKind, map_err_token};
 use crate::statements::{Executable, ParseableStatement, Statement};
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::data::{Data, ExprLiteral, ExprBinary};
 use crate::types::Type;
 
@@ -66,41 +66,37 @@ impl Expr {
     }
 
     fn parse_token_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
-        if let Some(data) = first_token.to_data() {
+        if let Some(data) = first_token.token.to_data() {
             let literal_expr = ExprLiteral::new(data);
             return Ok(Expr::Literal(literal_expr));
         }
         
-        match first_token {
-            Token::Identifier(name) => paths::parse(parser, name),
-            Token::For => r#for::parse(parser),
-            Token::If => r#if::parse(parser),
-            Token::LeftCurly => r#block::parse(parser),
-            _ => Err(parser.unexpected_token("expression"))
+        match first_token.token {
+            TokenType::Identifier(_) => paths::parse(parser, first_token),
+            TokenType::For => r#for::parse(parser, first_token),
+            TokenType::If => r#if::parse(parser),
+            TokenType::LeftCurly => r#block::parse(parser),
+            _ => Err(parser.unexpected_token(first_token, "expression"))
         }
     }
 
     pub fn parse_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
-        let mut lhs_pos = parser.collector.current_pos();
+        let mut lhs_pos = first_token.pos;
         let mut lhs = Box::new(Expr::parse_token_expr(parser, first_token)?);
-        let mut lhs_type = lhs.get_type(parser)
-            .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
+        let mut lhs_type = map_err_token(lhs.get_type(parser), first_token)?;
 
         for i in 0..=1_000_000 {
             let operation = parser.collector.next();
-            match operation.to_operation() {
+            match operation.token.to_operation() {
                 Some(operation) => {
                     let rhs_token = parser.collector.next();
-                    let rhs_pos = parser.collector.current_pos();
-
                     let rhs = Box::new(Expr::parse_token_expr(parser, rhs_token)?);
-                    let rhs_type = rhs.get_type(parser)
-                        .map_err(|err_kind| err_kind.to_err(rhs_pos))?;
+                    let rhs_type = map_err_token(rhs.get_type(parser), rhs_token)?;
 
                     operation.typ(&lhs_type, &rhs_type)
                         .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
 
-                    lhs_pos = rhs_pos;
+                    lhs_pos = rhs_token.pos;
                     lhs = Box::new(Expr::Binary(ExprBinary::new(operation, lhs, rhs)));
                     lhs_type = lhs.get_type(parser)
                         .map_err(|err_kind| err_kind.to_err(lhs_pos))?;

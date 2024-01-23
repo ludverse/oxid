@@ -4,7 +4,7 @@ use crate::errors::ParseErr;
 use crate::expressions::Expr;
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 
 use r#let::VariableAssignment;
 use r#fn::FunctionDeclaration;
@@ -39,9 +39,9 @@ impl Statement {
     pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Statement, ParseErr> {
         let mut enforce_semicolon = true;
 
-        let res = match first_token {
-            Token::Let => VariableAssignment::parse(parser, first_token),
-            Token::Fn => FunctionDeclaration::parse(parser, first_token),
+        let res = match first_token.token {
+            TokenType::Let => VariableAssignment::parse(parser, first_token),
+            TokenType::Fn => FunctionDeclaration::parse(parser, first_token),
             _ => {
                 enforce_semicolon = false;
 
@@ -49,11 +49,12 @@ impl Statement {
             }
         };
 
-        match parser.collector.next() {
-            Token::Semicolon => res,
+        let semicolon_token = parser.collector.next();
+        match semicolon_token.token {
+            TokenType::Semicolon => res,
             _ => {
                 if enforce_semicolon {
-                    Err(parser.unexpected_token("Semicolon"))
+                    Err(parser.unexpected_token(semicolon_token, "Semicolon"))
                 } else {
                     parser.collector.back();
                     res

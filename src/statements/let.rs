@@ -1,6 +1,6 @@
 use crate::errors::ParseErr;
 use crate::interpreter::Interpreter;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::parser::Parser;
 use crate::expressions::Expr;
 use crate::statements::{Executable, ParseableStatement, Statement};
@@ -34,28 +34,33 @@ impl ParseableStatement for VariableAssignment {
         let mut next_token = parser.collector.next();
         let mut is_mut = false;
 
-        if let Token::Mut = next_token {
+        if let TokenType::Mut = next_token.token {
             is_mut = true;
             next_token = parser.collector.next();
         }
 
-        match next_token {
-            Token::Identifier(name) => match parser.collector.next() {
-                Token::Equal => {
-                    let expr_token = parser.collector.next();
-                    let expr_token_pos = parser.collector.current_pos();
+        match &next_token.token {
+            TokenType::Identifier(name) => {
 
-                    let expr = Expr::parse_expr(parser, expr_token)?;
-                    let expr_type = expr.get_type(parser)
-                        .map_err(|err_kind| err_kind.to_err(expr_token_pos))?;
+                let next_token = parser.collector.next();
+                match next_token.token {
+                    TokenType::Equal => {
 
-                    parser.sim_memory.insert(name.to_string(), expr_type);
+                        let expr_token = parser.collector.next();
+                        let expr = Expr::parse_expr(parser, expr_token)?;
+                        let expr_type = expr.get_type(parser)
+                            .map_err(|err_kind| err_kind.to_err(expr_token.pos))?;
 
-                    Ok(Statement::VariableAssignment(VariableAssignment::new(name.to_string(), expr, is_mut)))
-                },
-                _ => Err(parser.unexpected_token("Equal"))
+                        parser.sim_memory.insert(name.to_string(), expr_type);
+
+                        Ok(Statement::VariableAssignment(VariableAssignment::new(name.to_string(), expr, is_mut)))
+
+                    },
+                    _ => Err(parser.unexpected_token(next_token, "Equal"))
+                }
+
             },
-            _ => Err(parser.unexpected_token("variable name"))
+            _ => Err(parser.unexpected_token(next_token, "variable name"))
         }
     }
 }

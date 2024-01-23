@@ -2,7 +2,7 @@ pub use token_types::*;
 
 mod token_types;
 
-pub fn tokenize(buf: &str) -> TokenVec {
+pub fn tokenize(buf: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
 
     let buf_char_indicies: Vec<_> = buf.char_indices().collect();
@@ -15,18 +15,18 @@ pub fn tokenize(buf: &str) -> TokenVec {
             continue;
         };
 
-        let token = Token::get_next_type(byte_i, buf);
+        let token = TokenType::get_next_type(byte_i, buf);
 
         if let Some(token) = token {
             char_i += token.1;
 
-            tokens.push((byte_i, token.0));
+            tokens.push(Token::new(byte_i, token.0));
         } else {
             break;
         }
     }
 
-    tokens.push((buf.len(), Token::EOF));
+    tokens.push(Token::new(buf.len(), TokenType::EOF));
     tokens
 }
 

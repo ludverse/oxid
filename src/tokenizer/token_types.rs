@@ -3,10 +3,23 @@ use crate::data::Data;
 use crate::operations::Operation;
 use crate::expressions::paths::AssignOp;
 
-pub type TokenVec = Vec<(usize, Token)>;
+pub struct Token {
+    pub pos: usize,
+    pub token: TokenType
+}
+
+impl Token {
+    pub fn new(pos: usize, token: TokenType) -> Self {
+        Self {
+            pos,
+            token
+        }
+    }
+}
+
 
 #[derive(Debug, Clone)]
-pub enum Token {
+pub enum TokenType {
     LeftParen, RightParen,
     LeftBrace, RightBrace,
     LeftCurly, RightCurly,
@@ -37,8 +50,8 @@ pub enum Token {
     EOF
 }
 
-impl Token {
-    pub fn get_next_type(start_byte_i: usize, buf: &str) -> Option<(Token, usize)> {
+impl TokenType {
+    pub fn get_next_type(start_byte_i: usize, buf: &str) -> Option<(TokenType, usize)> {
         let buf = &buf[start_byte_i..];
         let mut chars = buf.chars();
 
@@ -50,61 +63,61 @@ impl Token {
             token_len += 1;
             chars.next()
         };
-        let mut decrease_len = |default_type: Token| {
+        let mut decrease_len = |default_type: TokenType| {
             do_decrease_len = true;
             default_type
         };
 
         let token_type = match first_char {
-            '(' => Token::LeftParen,
-            ')' => Token::RightParen,
-            '[' => Token::LeftBrace,
-            ']' => Token::RightBrace,
-            '{' => Token::LeftCurly,
-            '}' => Token::RightCurly,
-            '|' => Token::Pipe,
+            '(' => Self::LeftParen,
+            ')' => Self::RightParen,
+            '[' => Self::LeftBrace,
+            ']' => Self::RightBrace,
+            '{' => Self::LeftCurly,
+            '}' => Self::RightCurly,
+            '|' => Self::Pipe,
 
             '+' => match next_char() {
-                Some('=') => Token::PlusEqual,
-                _ => decrease_len(Token::Plus)
+                Some('=') => Self::PlusEqual,
+                _ => decrease_len(Self::Plus)
             },
             '-' => match next_char() {
-                Some('=') => Token::MinusEqual,
-                _ => decrease_len(Token::Minus)
+                Some('=') => Self::MinusEqual,
+                _ => decrease_len(Self::Minus)
             },
             '*' => match next_char() {
-                Some('=') => Token::StarEqual,
-                _ => decrease_len(Token::Star)
+                Some('=') => Self::StarEqual,
+                _ => decrease_len(Self::Star)
             },
             '/' => match next_char() {
-                Some('=') => Token::SlashEqual,
-                _ => decrease_len(Token::Slash)
+                Some('=') => Self::SlashEqual,
+                _ => decrease_len(Self::Slash)
             },
-            '%' => Token::Remainder,
+            '%' => Self::Remainder,
 
             '=' => match next_char() {
-                Some('=') => Token::EqualEqual,
-                _ => decrease_len(Token::Equal)
+                Some('=') => Self::EqualEqual,
+                _ => decrease_len(Self::Equal)
             },
             '!' => match next_char() {
-                Some('=') => Token::BangEqual,
-                _ => decrease_len(Token::Bang)
+                Some('=') => Self::BangEqual,
+                _ => decrease_len(Self::Bang)
             },
             '<' => match next_char() {
-                Some('=') => Token::GreaterEqual,
-                _ => decrease_len(Token::Greater)
+                Some('=') => Self::GreaterEqual,
+                _ => decrease_len(Self::Greater)
             },
             '>' => match next_char() {
-                Some('=') => Token::LessEqual,
-                _ => decrease_len(Token::Less)
+                Some('=') => Self::LessEqual,
+                _ => decrease_len(Self::Less)
             },
 
-            ';' => Token::Semicolon,
+            ';' => Self::Semicolon,
             '.' => match next_char() {
-                Some('.') => Token::Range,
-                _ => decrease_len(Token::Dot),
+                Some('.') => Self::Range,
+                _ => decrease_len(Self::Dot),
             },
-            ',' => Token::Comma,
+            ',' => Self::Comma,
 
             '"' => {
                 let mut current_char = next_char();
@@ -118,7 +131,7 @@ impl Token {
                 }
 
                 let string = &buf[1..token_len - 1].to_string();
-                Token::String(string.to_string())
+                Self::String(string.to_string())
             },
 
             _ => {
@@ -139,7 +152,7 @@ impl Token {
                     if number.ends_with(".") { token_len -= 1 };
 
                     let number: &f64 = &buf[..token_len].parse().unwrap();
-                    Token::Number(*number)
+                    Self::Number(*number)
                 } else if first_char.is_ascii_alphabetic() || first_char == '_' || first_char == '$' {
                     let mut current_char = next_char();
                     while current_char.is_some() && current_char.unwrap().is_ascii_alphabetic() || current_char == Some('_') || current_char == Some('$') {
@@ -150,17 +163,17 @@ impl Token {
 
                     let name = &buf[..token_len];
                     match name {
-                        "fn" => Token::Fn,
-                        "let" => Token::Let,
-                        "mut" => Token::Mut,
-                        "for" => Token::For,
-                        "in" => Token::In,
-                        "if" => Token::If,
-                        "else" => Token::Else,
-                        "match" => Token::Match,
-                        "true" => Token::Bool(true),
-                        "false" => Token::Bool(false),
-                        _ => Token::Identifier(name.to_string())
+                        "fn" => Self::Fn,
+                        "let" => Self::Let,
+                        "mut" => Self::Mut,
+                        "for" => Self::For,
+                        "in" => Self::In,
+                        "if" => Self::If,
+                        "else" => Self::Else,
+                        "match" => Self::Match,
+                        "true" => Self::Bool(true),
+                        "false" => Self::Bool(false),
+                        _ => Self::Identifier(name.to_string())
                     }
                 } else {
                     // we gotta handle this sometime later
@@ -178,29 +191,29 @@ impl Token {
 
     pub fn to_data(&self) -> Option<Data> {
         match self {
-            Token::String(val) => Some(Data::String(val.to_string())),
-            Token::Number(val) => Some(Data::Number(*val)),
-            Token::Bool(val) => Some(Data::Bool(*val)),
+            Self::String(val) => Some(Data::String(val.to_string())),
+            Self::Number(val) => Some(Data::Number(*val)),
+            Self::Bool(val) => Some(Data::Bool(*val)),
             _ => None
         }
     }
 
     pub fn to_operation(&self) -> Option<Operation> {
         match self {
-            Token::Plus => Some(Operation::Add),
-            Token::Minus => Some(Operation::Sub),
-            Token::Star => Some(Operation::Mul),
-            Token::Slash => Some(Operation::Div),
-            Token::Remainder => Some(Operation::Rem),
-            Token::EqualEqual => Some(Operation::Eq),
+            Self::Plus => Some(Operation::Add),
+            Self::Minus => Some(Operation::Sub),
+            Self::Star => Some(Operation::Mul),
+            Self::Slash => Some(Operation::Div),
+            Self::Remainder => Some(Operation::Rem),
+            Self::EqualEqual => Some(Operation::Eq),
             _ => None
         }
     }
 
     pub fn to_assign_op(&self) -> Option<AssignOp> {
         match self {
-            Token::Equal => Some(AssignOp::Eq),
-            Token::PlusEqual => Some(AssignOp::AddEq),
+            Self::Equal => Some(AssignOp::Eq),
+            Self::PlusEqual => Some(AssignOp::AddEq),
             _ => None
         }
     }

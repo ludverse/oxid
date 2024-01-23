@@ -4,7 +4,7 @@ use crate::errors::{ParseErr, ParseErrKind};
 use crate::expressions::{Expr, Evaluable};
 use crate::data::{Data, ExprLiteral};
 use crate::statements::Statement;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -26,8 +26,8 @@ impl ExprBlock {
             if i == 1_000_000 { panic!("loop never breaked") }
 
             let next_token = parser.collector.next();
-            match next_token {
-                Token::RightCurly => break,
+            match next_token.token {
+                TokenType::RightCurly => break,
                 _ => body.push(Statement::parse(parser, next_token)?)
             }
         }
@@ -36,9 +36,9 @@ impl ExprBlock {
     }
 
     pub fn parse_block(parser: &mut Parser, first_token: &Token) -> Result<ExprBlock, ParseErr> {
-        match first_token {
-            Token::LeftCurly => ExprBlock::parse_block_statements(parser),
-            _ => Err(parser.unexpected_token("LeftCurly"))
+        match first_token.token {
+            TokenType::LeftCurly => ExprBlock::parse_block_statements(parser),
+            _ => Err(parser.unexpected_token(first_token, "LeftCurly"))
         }
     }
 }

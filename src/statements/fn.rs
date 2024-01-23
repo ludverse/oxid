@@ -2,7 +2,7 @@ use crate::data::Data;
 use crate::errors::ParseErr;
 use crate::expressions::block::ExprBlock;
 use crate::interpreter::Interpreter;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::parser::Parser;
 use crate::statements::{Executable, ParseableStatement, Statement};
 use crate::types::Type;
@@ -52,43 +52,63 @@ impl Executable for FunctionDeclaration {
 
 impl ParseableStatement for FunctionDeclaration {
     fn parse(parser: &mut Parser, _first_token: &Token) -> Result<Statement, ParseErr> {
-        match parser.collector.next() {
-            Token::Identifier(name) => match parser.collector.next() {
-                Token::LeftParen => {
-                    let mut args = vec![];
 
-                    for _ in 0..=1_000_000 {
-                        match parser.collector.next() {
-                            Token::Identifier(arg_name) => match parser.collector.next() {
-                                Token::Comma => args.push((arg_name.to_string(), Type::Bool)),
-                                Token::RightParen => {
-                                    args.push((arg_name.to_string(), Type::Bool));
+        let next_token = parser.collector.next();
+        match &next_token.token {
+            TokenType::Identifier(name) => {
 
-                                    break;
+                let next_token = parser.collector.next();
+                match next_token.token {
+                    TokenType::LeftParen => {
+
+                        let mut args = vec![];
+
+                        for _ in 0..=1_000_000 {
+
+                            let next_token = parser.collector.next();
+                            match &next_token.token {
+                                TokenType::Identifier(arg_name) => {
+
+                                    let next_token = parser.collector.next();
+                                    match next_token.token {
+
+                                        TokenType::Comma => args.push((arg_name.to_string(), Type::Bool)),
+                                        TokenType::RightParen => {
+                                            args.push((arg_name.to_string(), Type::Bool));
+
+                                            break;
+                                        },
+                                        _ => return Err(parser.unexpected_token(next_token, "Comma or RightParen"))
+                                    }
+
                                 },
-                                _ => return Err(parser.unexpected_token("Comma or RightParen"))
-                            },
-                            Token::RightParen => break,
-                            _ => return Err(parser.unexpected_token("argument or RightParen"))
+                                TokenType::RightParen => break,
+                                _ => return Err(parser.unexpected_token(next_token, "argument or RightParen"))
+                            }
+
                         }
+
+                        for arg in args.iter() {
+                            parser.sim_memory.insert(arg.0.to_string(), arg.1.clone());
+                        }
+
+                        let first_token = parser.collector.next();
+                        let body = ExprBlock::parse_block(parser, first_token)?;
+
+                        let func_decl = FunctionDeclaration::new(name.to_string(), args, Type::Bool, body);
+
+                        parser.functions.insert(name.to_string(), func_decl.signature.clone());
+
+                        Ok(Statement::FunctionDeclaration(func_decl))
+
                     }
-
-                    for arg in args.iter() {
-                        parser.sim_memory.insert(arg.0.to_string(), arg.1.clone());
-                    }
-
-                    let first_token = parser.collector.next();
-                    let body = ExprBlock::parse_block(parser, first_token)?;
-
-                    let func_decl = FunctionDeclaration::new(name.to_string(), args, Type::Bool, body);
-
-                    parser.functions.insert(name.to_string(), func_decl.signature.clone());
-
-                    Ok(Statement::FunctionDeclaration(func_decl))
+                    _ => Err(parser.unexpected_token(next_token, "LeftParen"))
                 }
-                _ => Err(parser.unexpected_token("LeftParen"))
+
             },
-            _ => Err(parser.unexpected_token("function name"))
+            _ => Err(parser.unexpected_token(next_token, "function name"))
         }
+
     }
+
 }

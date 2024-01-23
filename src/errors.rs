@@ -1,4 +1,4 @@
-use crate::operations::Operation;
+use crate::{operations::Operation, tokenizer::Token};
 
 pub struct ParseErr {
     err_kind: ParseErrKind,
@@ -38,4 +38,8 @@ impl ParseErrKind {
             ParseErrKind::UnmatchedDelimiter(c) => format!("unmatched delimiter `{}`", c),
         }
     }
+}
+
+pub fn map_err_token<T>(res: Result<T, ParseErrKind>, token: &Token) -> Result<T, ParseErr> {
+    res.map_err(|err_kind| err_kind.to_err(token.pos))
 }

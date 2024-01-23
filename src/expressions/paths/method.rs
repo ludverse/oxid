@@ -4,7 +4,7 @@ use crate::errors::{ParseErrKind, ParseErr};
 use crate::expressions::{Expr, Evaluable};
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::tokenizer::Token;
+use crate::tokenizer::{Token, TokenType};
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -53,12 +53,13 @@ impl Evaluable for ExprMethod {
     }
 }
 
-pub fn parse(parser: &mut Parser, name: &String, name_pos: usize) -> Result<Expr, ParseErr> {
+pub fn parse(parser: &mut Parser, first_token: &Token, name: &String) -> Result<Expr, ParseErr> {
     let next_token = parser.collector.next();
     let arg_expr = Expr::parse_expr(parser, next_token)?;
 
-    match parser.collector.next() {
-        Token::RightParen => {
+    let paren_token = parser.collector.next();
+    match paren_token.token {
+        TokenType::RightParen => {
             if let Some(builtin) = BuiltinFunc::from_name(name) {
                 return Ok(Expr::Method(ExprMethod::new(name.to_string(), vec![Box::new(arg_expr)])));
             }
@@ -67,8 +68,8 @@ pub fn parse(parser: &mut Parser, name: &String, name_pos: usize) -> Result<Expr
                 return Ok(Expr::Method(ExprMethod::new(name.to_string(), vec![Box::new(arg_expr)])));
             }
 
-            return Err(ParseErrKind::UnknownField(name.to_string()).to_err(name_pos));
+            return Err(ParseErrKind::UnknownField(name.to_string()).to_err(first_token.pos));
         },
-        _ => Err(parser.unexpected_token("RightParen"))
+        _ => Err(parser.unexpected_token(paren_token, "RightParen"))
     }
 }
