@@ -15,6 +15,7 @@ pub fn eval(args: Vec<Data>) -> Data {
     
     match arg {
         Data::String(arg) => println!("{}", arg),
+        Data::Number(arg) => println!("{:?}", arg),
         _ => panic!("should have already been caught by the parser")
     }
 

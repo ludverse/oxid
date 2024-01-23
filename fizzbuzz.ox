@@ -7,6 +7,6 @@ for i in 0..50 {
 
     if out == "" { out = i };
 
-    println(out);
-}
+    print(out);
+};
 

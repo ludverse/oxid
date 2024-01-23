@@ -75,21 +75,13 @@ pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr>
                             let next_token = parser.collector.next();
                             let end_expr = Expr::parse_expr(parser, next_token)?;
 
+                            parser.sim_memory.insert(index_var.to_string(), Type::Number);
+
                             let next_token = parser.collector.next();
-                            match next_token.token {
-                                TokenType::LeftCurly => {
+                            let body = ExprBlock::parse_block(parser, next_token)?;
+                            let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
 
-                                    parser.sim_memory.insert(index_var.to_string(), Type::Number);
-
-                                    let next_token = parser.collector.next();
-                                    let body = ExprBlock::parse_block(parser, next_token)?;
-                                    let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
-
-                                    Ok(Expr::For(for_expr))
-
-                                },
-                                _ => Err(parser.unexpected_token(next_token, "LeftCurly"))
-                            }
+                            Ok(Expr::For(for_expr))
 
                         },
                         _ => Err(parser.unexpected_token(next_token, "Range"))

@@ -3,6 +3,7 @@ use crate::data::Data;
 use crate::operations::Operation;
 use crate::expressions::paths::AssignOp;
 
+#[derive(Debug, Clone)]
 pub struct Token {
     pub pos: usize,
     pub token: TokenType
