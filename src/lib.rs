@@ -7,6 +7,7 @@ pub mod expressions;
 pub mod data;
 pub mod operations;
 pub mod types;
+pub mod builtin;
 pub mod errors;
 
 pub struct Config {

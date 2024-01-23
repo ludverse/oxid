@@ -1,7 +1,8 @@
-let a = if false { 8 };
+fn stupid() {
+    let x = 42;
+    print("s");
+};
 
-let ok = "" + "";
-let x = 1 + 2 + ok;
-
-println(x)
-println(a)
+stupid("h")
+stupid("h")
+stupid("h")

@@ -42,6 +42,6 @@ fn rem_numbers_types() {
 }
 
 #[test]
-fn cannot_reremifferent_types() {
+fn cannot_rem_different_types() {
     assert!(Operation::Sub.typ(&Type::String, &Type::Number).is_err())
 }

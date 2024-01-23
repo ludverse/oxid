@@ -6,13 +6,13 @@ use crate::tokenizer::Token;
 use crate::data::{Data, ExprLiteral, ExprBinary};
 use crate::types::Type;
 
-pub use identifier::{ExprPath, ExprMethod, ExprAssign};
-pub use r#for::ExprFor;
-pub use r#if::ExprIf;
-pub use bang::ExprUnary;
-pub use block::ExprBlock;
+use paths::{ExprPath, ExprMethod, ExprAssign};
+use r#for::ExprFor;
+use r#if::ExprIf;
+use bang::ExprUnary;
+use block::ExprBlock;
 
-pub mod identifier;
+pub mod paths;
 pub mod r#for;
 pub mod r#if;
 pub mod bang;
@@ -72,7 +72,7 @@ impl Expr {
         }
         
         match first_token {
-            Token::Identifier(name) => identifier::parse(parser, name),
+            Token::Identifier(name) => paths::parse(parser, name),
             Token::For => r#for::parse(parser),
             Token::If => r#if::parse(parser),
             Token::LeftCurly => r#block::parse(parser),

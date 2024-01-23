@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::statements::r#fn::FunctionSignature;
 use crate::tokenizer::Token;
 use crate::statements::Statement;
 use crate::errors::{ParseErrKind, ParseErr};
@@ -23,14 +24,16 @@ impl Program {
 
 pub struct Parser<'a> {
     pub collector: TokenCollector<'a>,
-    pub sim_memory: HashMap<String, Type>
+    pub sim_memory: HashMap<String, Type>,
+    pub functions: HashMap<String, FunctionSignature>
 }
 
 impl<'a> Parser<'a> {
     pub fn new(collector: TokenCollector<'a>) -> Parser<'a> {
         Parser {
             collector,
-            sim_memory: HashMap::new()
+            sim_memory: HashMap::new(),
+            functions: HashMap::new()
         }
     }
 

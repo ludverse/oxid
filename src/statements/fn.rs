@@ -1,25 +1,44 @@
+use crate::data::Data;
 use crate::errors::ParseErr;
-use crate::expressions::ExprBlock;
+use crate::expressions::block::ExprBlock;
 use crate::interpreter::Interpreter;
 use crate::tokenizer::Token;
 use crate::parser::Parser;
 use crate::statements::{Executable, ParseableStatement, Statement};
 use crate::types::Type;
 
+pub type DataArgs = Vec<Data>;
+pub type SignatureArgs = Vec<(String, Type)>;
+
+#[derive(Debug, Clone)]
+pub struct FunctionSignature {
+    pub args: SignatureArgs,
+    pub return_type: Type,
+}
+
+impl FunctionSignature {
+    fn new(args: Vec<(String, Type)>, return_type: Type) -> FunctionSignature {
+        FunctionSignature {
+            args,
+            return_type
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
     pub name: String,
-    pub args: Vec<(String, Type)>,
-    pub return_type: Type,
+    pub signature: FunctionSignature,
     pub body: ExprBlock
 }
 
 impl FunctionDeclaration {
     fn new(name: String, args: Vec<(String, Type)>, return_type: Type, body: ExprBlock) -> FunctionDeclaration {
+        let signature = FunctionSignature::new(args, return_type);
+
         FunctionDeclaration {
             name,
-            args,
-            return_type,
+            signature,
             body
         }
     }
@@ -27,7 +46,7 @@ impl FunctionDeclaration {
 
 impl Executable for FunctionDeclaration {
     fn exec(&self, interpreter: &mut Interpreter) {
-
+        interpreter.functions.insert(self.name.to_string(), self.clone());
     }
 }
 
@@ -62,6 +81,9 @@ impl ParseableStatement for FunctionDeclaration {
                     let body = ExprBlock::parse_block(parser, first_token)?;
 
                     let func_decl = FunctionDeclaration::new(name.to_string(), args, Type::Bool, body);
+
+                    parser.functions.insert(name.to_string(), func_decl.signature.clone());
+
                     Ok(Statement::FunctionDeclaration(func_decl))
                 }
                 _ => Err(parser.unexpected_token("LeftParen"))
