@@ -1,6 +1,7 @@
 use crate::data::Data;
 use crate::errors::ParseErr;
 use crate::expressions::block::ExprBlock;
+use crate::helpers::destructive_loop;
 use crate::interpreter::Interpreter;
 use crate::tokenizer::{Token, TokenType};
 use crate::parser::Parser;
@@ -61,32 +62,7 @@ impl ParseableStatement for FunctionDeclaration {
                 match next_token.token {
                     TokenType::LeftParen => {
 
-                        let mut args = vec![];
-
-                        for _ in 0..=1_000_000 {
-
-                            let next_token = parser.collector.next();
-                            match &next_token.token {
-                                TokenType::Identifier(arg_name) => {
-
-                                    let next_token = parser.collector.next();
-                                    match next_token.token {
-
-                                        TokenType::Comma => args.push((arg_name.to_string(), Type::Bool)),
-                                        TokenType::RightParen => {
-                                            args.push((arg_name.to_string(), Type::Bool));
-
-                                            break;
-                                        },
-                                        _ => return Err(parser.unexpected_token(next_token, "Comma or RightParen"))
-                                    }
-
-                                },
-                                TokenType::RightParen => break,
-                                _ => return Err(parser.unexpected_token(next_token, "argument or RightParen"))
-                            }
-
-                        }
+                        let args = parse_args(parser)?;
 
                         for arg in args.iter() {
                             parser.sim_memory.insert(arg.0.to_string(), arg.1.clone());
@@ -111,4 +87,48 @@ impl ParseableStatement for FunctionDeclaration {
 
     }
 
+}
+
+fn parse_args(parser: &mut Parser) -> Result<Vec<(String, Type)>, ParseErr> {
+    let mut args = vec![];
+
+    destructive_loop!({
+        let next_token = parser.collector.next();
+        match &next_token.token {
+            TokenType::Identifier(arg_name) => {
+
+                let next_token = parser.collector.next();
+                match &next_token.token {
+                    TokenType::Colon => {
+
+                        let next_token = parser.collector.next();
+                        match &next_token.token {
+                            TokenType::Identifier(arg_type) if Type::from_name(arg_type).is_some() => {
+
+                                let arg_type = Type::from_name(arg_type).unwrap();
+                                args.push((arg_name.to_string(), arg_type));
+
+                                let next_token = parser.collector.next();
+                                match next_token.token {
+                                    TokenType::Comma => (),
+                                    TokenType::RightParen => break,
+                                    _ => return Err(parser.unexpected_token(next_token, "Comma or RightParen"))
+                                }
+
+                            },
+                            _ => return Err(parser.unexpected_token(next_token, "type"))
+                        }
+
+                    },
+                    _ => return Err(parser.unexpected_token(next_token, "Colon"))
+                }
+
+            },
+            TokenType::RightParen => break,
+            _ => return Err(parser.unexpected_token(next_token, "argument or RightParen"))
+        }
+
+    });
+
+    Ok(args)
 }

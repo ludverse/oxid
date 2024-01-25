@@ -2,6 +2,7 @@ use crate::builtin::BuiltinFunc;
 use crate::data::Data;
 use crate::errors::{ParseErrKind, ParseErr};
 use crate::expressions::{Expr, Evaluable};
+use crate::helpers::destructive_loop;
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::tokenizer::{Token, TokenType};
@@ -37,15 +38,25 @@ impl Evaluable for ExprMethod {
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
+        let args: Vec<_> = self.args.iter()
+            .map(|arg_expr| arg_expr.eval(interpreter))
+            .collect();
+
         if let Some(builtin) = BuiltinFunc::from_name(&self.name) {
-            let args: Vec<_> = self.args.iter()
-                .map(|arg| arg.eval(interpreter))
-                .collect();
+            for (i, arg_data) in args.iter().enumerate() {
+                let arg_type = &builtin.arg_types()[i];
+                interpreter.memory.insert(arg_type.0.to_string(), arg_data.clone());
+            }
 
             return builtin.eval(args);
         }
 
         if let Some(func_decl) = interpreter.functions.get(&self.name).cloned() {
+            for (i, arg_data) in args.iter().enumerate() {
+                let arg_type = &func_decl.signature.args[i];
+                interpreter.memory.insert(arg_type.0.to_string(), arg_data.clone());
+            }
+
             return func_decl.body.eval(interpreter)
         }
 
@@ -54,22 +65,36 @@ impl Evaluable for ExprMethod {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, name: &String) -> Result<Expr, ParseErr> {
-    let next_token = parser.collector.next();
-    let arg_expr = Expr::parse_expr(parser, next_token)?;
+    let mut args = vec![];
 
-    let paren_token = parser.collector.next();
-    match paren_token.token {
-        TokenType::RightParen => {
-            if let Some(builtin) = BuiltinFunc::from_name(name) {
-                return Ok(Expr::Method(ExprMethod::new(name.to_string(), vec![Box::new(arg_expr)])));
-            }
+    destructive_loop!({
+        let next_token = parser.collector.next();
+        match &next_token.token {
+            TokenType::RightParen => break,
+            _ => ()
+        }
 
-            if let Some(signature) = parser.functions.get(name) {
-                return Ok(Expr::Method(ExprMethod::new(name.to_string(), vec![Box::new(arg_expr)])));
-            }
+        // TODO: prob explain to the user that it expects a rightparent too but current error
+        // handler doesn't support that so ill fix it in post
+        let arg_expr = Expr::parse_expr(parser, next_token)?;
 
-            return Err(ParseErrKind::UnknownField(name.to_string()).to_err(first_token.pos));
-        },
-        _ => Err(parser.unexpected_token(paren_token, "RightParen"))
+        args.push(Box::new(arg_expr));
+
+        let next_token = parser.collector.next();
+        match &next_token.token {
+            TokenType::Comma => continue,
+            TokenType::RightParen => break,
+            _ => return Err(parser.unexpected_token(next_token, "Comma or RightParen"))
+        }
+    });
+
+    if let Some(builtin) = BuiltinFunc::from_name(name) {
+        return Ok(Expr::Method(ExprMethod::new(name.to_string(), args)));
     }
+
+    if let Some(signature) = parser.functions.get(name) {
+        return Ok(Expr::Method(ExprMethod::new(name.to_string(), args)));
+    }
+
+    Err(ParseErrKind::UnknownField(name.to_string()).to_err(first_token.pos))
 }

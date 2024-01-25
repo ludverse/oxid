@@ -37,6 +37,7 @@ pub enum TokenType {
     Greater, GreaterEqual,
     Less, LessEqual,
 
+    Colon,
     Semicolon,
     Dot, Range,
     Comma,
@@ -113,6 +114,7 @@ impl TokenType {
                 _ => decrease_len(Self::Less)
             },
 
+            ':' => Self::Colon,
             ';' => Self::Semicolon,
             '.' => match next_char() {
                 Some('.') => Self::Range,

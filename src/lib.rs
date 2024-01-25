@@ -9,6 +9,7 @@ pub mod operations;
 pub mod types;
 pub mod builtin;
 pub mod errors;
+pub mod helpers;
 
 pub struct Config {
     pub source_file: String
