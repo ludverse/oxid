@@ -5,6 +5,8 @@ use crate::types::Type;
 pub mod eq;
 pub mod add;
 pub mod sub;
+pub mod mul;
+pub mod div;
 pub mod rem;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -23,8 +25,9 @@ impl Operation {
             Operation::Eq => eq::typ(lhs, rhs),
             Operation::Add => add::typ(lhs, rhs),
             Operation::Sub => sub::typ(lhs, rhs),
-            Operation::Rem => rem::typ(lhs, rhs),
-            _ => unimplemented!()
+            Operation::Mul => mul::typ(lhs, rhs),
+            Operation::Div => div::typ(lhs, rhs),
+            Operation::Rem => rem::typ(lhs, rhs)
         };
 
         res.ok_or(ParseErrKind::InvalidOperation(*self, format!("{:?}", lhs), format!("{:?}", rhs)))
@@ -35,8 +38,9 @@ impl Operation {
             Operation::Eq => eq::op(lhs, rhs),
             Operation::Add => add::op(lhs, rhs),
             Operation::Sub => sub::op(lhs, rhs),
-            Operation::Rem => rem::op(lhs, rhs),
-            _ => unimplemented!()
+            Operation::Mul => mul::op(lhs, rhs),
+            Operation::Div => div::op(lhs, rhs),
+            Operation::Rem => rem::op(lhs, rhs)
         };
 
         res.expect("invalid operation slipped through to the interpreter after a valid operation check")

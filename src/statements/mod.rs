@@ -37,22 +37,26 @@ impl Statement {
     }
 
     pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Statement, ParseErr> {
-        let mut enforce_semicolon = true;
-
         let res = match first_token.token {
             TokenType::Let => VariableAssignment::parse(parser, first_token),
             TokenType::Fn => FunctionDeclaration::parse(parser, first_token),
-            _ => {
-                enforce_semicolon = false;
-
-                Expr::parse(parser, first_token)
-            }
+            _ => Expr::parse(parser, first_token)
         };
 
         let semicolon_token = parser.collector.next();
         match semicolon_token.token {
             TokenType::Semicolon => res,
             _ => {
+                let mut enforce_semicolon = true;
+
+                if let Ok(res) = &res {
+                    enforce_semicolon = !matches!(res,
+                        Statement::FunctionDeclaration(_) |
+                        Statement::Expr(Expr::For(_)) |
+                        Statement::Expr(Expr::If(_))
+                    );
+                }
+
                 if enforce_semicolon {
                     Err(parser.unexpected_token(semicolon_token, "Semicolon"))
                 } else {

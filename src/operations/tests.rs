@@ -20,6 +20,12 @@ fn add_string_types() {
 }
 
 #[test]
+fn add_numbers_types() {
+    let res_type = Operation::Add.typ(&Type::Number, &Type::Number);
+    assert_eq!(res_type, Ok(Type::Number));
+}
+
+#[test]
 fn cannot_add_different_types() {
     assert!(Operation::Add.typ(&Type::String, &Type::Number).is_err())
 }
@@ -33,6 +39,28 @@ fn sub_numbers_types() {
 #[test]
 fn cannot_sub_different_types() {
     assert!(Operation::Sub.typ(&Type::String, &Type::Number).is_err())
+}
+
+#[test]
+fn mul_numbers_types() {
+    let res_type = Operation::Mul.typ(&Type::Number, &Type::Number);
+    assert_eq!(res_type, Ok(Type::Number));
+}
+
+#[test]
+fn cannot_mul_different_types() {
+    assert!(Operation::Mul.typ(&Type::String, &Type::Number).is_err())
+}
+
+#[test]
+fn div_numbers_types() {
+    let res_type = Operation::Div.typ(&Type::Number, &Type::Number);
+    assert_eq!(res_type, Ok(Type::Number));
+}
+
+#[test]
+fn cannot_div_different_types() {
+    assert!(Operation::Div.typ(&Type::String, &Type::Number).is_err())
 }
 
 #[test]

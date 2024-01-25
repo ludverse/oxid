@@ -1,0 +1,3 @@
+fn st() {
+    print("std");
+};
