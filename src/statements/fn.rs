@@ -11,17 +11,17 @@ use crate::types::Type;
 pub type DataArgs = Vec<Data>;
 pub type SignatureArgs = Vec<(String, Type)>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FunctionSignature {
     pub args: SignatureArgs,
-    pub return_type: Type,
+    pub ret: Box<Type>,
 }
 
 impl FunctionSignature {
-    fn new(args: Vec<(String, Type)>, return_type: Type) -> FunctionSignature {
+    fn new(args: Vec<(String, Type)>, ret: Box<Type>) -> FunctionSignature {
         FunctionSignature {
             args,
-            return_type
+            ret
         }
     }
 }
@@ -34,8 +34,8 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-    fn new(name: String, args: Vec<(String, Type)>, return_type: Type, body: ExprBlock) -> FunctionDeclaration {
-        let signature = FunctionSignature::new(args, return_type);
+    fn new(name: String, args: Vec<(String, Type)>, ret: Box<Type>, body: ExprBlock) -> FunctionDeclaration {
+        let signature = FunctionSignature::new(args, ret);
 
         FunctionDeclaration {
             name,
@@ -71,7 +71,7 @@ impl ParseableStatement for FunctionDeclaration {
                         let first_token = parser.collector.next();
                         let body = ExprBlock::parse_block(parser, first_token)?;
 
-                        let func_decl = FunctionDeclaration::new(name.to_string(), args, Type::Bool, body);
+                        let func_decl = FunctionDeclaration::new(name.to_string(), args, Box::new(Type::Bool), body);
 
                         parser.functions.insert(name.to_string(), func_decl.signature.clone());
 

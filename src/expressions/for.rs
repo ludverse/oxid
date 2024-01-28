@@ -27,7 +27,7 @@ impl ExprFor {
 }
 
 impl Evaluable for ExprFor {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         Ok(Type::TempNil)
     }
 

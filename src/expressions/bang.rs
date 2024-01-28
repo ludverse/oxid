@@ -17,7 +17,7 @@ pub struct ExprUnary {
 }
 
 impl Evaluable for ExprUnary {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         unimplemented!()
     }
 

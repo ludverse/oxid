@@ -24,14 +24,14 @@ impl ExprMethod {
 }
 
 impl Evaluable for ExprMethod {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         dbg!(&self.name);
         if let Some(builtin) = BuiltinFunc::from_name(&self.name) {
             return Ok(builtin.return_type())
         }
 
         if let Some(signature) = parser.functions.get(&self.name) {
-            return Ok(signature.return_type.clone())
+            return Ok(*signature.ret.clone())
         }
 
         panic!("should have already been caught by the parser")

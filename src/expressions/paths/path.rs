@@ -20,7 +20,7 @@ impl ExprPath {
 }
 
 impl Evaluable for ExprPath {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         parser.sim_memory.get(&self.path[0])
             .ok_or(ParseErrKind::UnknownField(self.path[0].clone()))
             .cloned()

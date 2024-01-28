@@ -22,7 +22,7 @@ pub mod index;
 pub mod block;
 
 pub trait Evaluable {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
 }
 
@@ -43,16 +43,16 @@ pub enum Expr {
 impl Expr {
     pub fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         match self {
-            Expr::Literal(literal_expr) => literal_expr.get_type(parser),
-            Expr::Binary(binary_expr) => binary_expr.get_type(parser),
-            Expr::Index(index_expr) => index_expr.get_type(parser),
+            Expr::Literal(literal_expr) => literal_expr.typ(parser),
+            Expr::Binary(binary_expr) => binary_expr.typ(parser),
+            Expr::Index(index_expr) => index_expr.typ(parser),
             Expr::Unary(_) => unimplemented!(),
-            Expr::Path(path_expr) => path_expr.get_type(parser),
-            Expr::Method(expr_method) => expr_method.get_type(parser),
-            Expr::Assign(assign_expr) => assign_expr.get_type(parser),
-            Expr::Block(block_expr) => block_expr.get_type(parser),
-            Expr::For(for_expr) => for_expr.get_type(parser),
-            Expr::If(if_expr) => if_expr.get_type(parser)
+            Expr::Path(path_expr) => path_expr.typ(parser),
+            Expr::Method(expr_method) => expr_method.typ(parser),
+            Expr::Assign(assign_expr) => assign_expr.typ(parser),
+            Expr::Block(block_expr) => block_expr.typ(parser),
+            Expr::For(for_expr) => for_expr.typ(parser),
+            Expr::If(if_expr) => if_expr.typ(parser)
         }
     }
 

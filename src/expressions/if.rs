@@ -23,7 +23,7 @@ impl ExprIf {
 }
 
 impl Evaluable for ExprIf {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         // self.body.get_type(parser)
         //
         // when we implement else clauses we can start returning values

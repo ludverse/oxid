@@ -16,18 +16,18 @@ fn to_number(x: Number) {
         let d_from_floor = num % 1;
         let floored = num - d_from_floor;
 
-        if num == 0 { out += "0"; };
-        if num == 1 { out += "1"; };
-        if num == 2 { out += "2"; };
-        if num == 3 { out += "3"; };
-        if num == 4 { out += "4"; };
-        if num == 5 { out += "5"; };
-        if num == 6 { out += "6"; };
-        if num == 7 { out += "7"; };
-        if num == 8 { out += "8"; };
-        if num == 9 { out += "9"; };
+        if floored == 0 { out += "0"; };
+        if floored == 1 { out += "1"; };
+        if floored == 2 { out += "2"; };
+        if floored == 3 { out += "3"; };
+        if floored == 4 { out += "4"; };
+        if floored == 5 { out += "5"; };
+        if floored == 6 { out += "6"; };
+        if floored == 7 { out += "7"; };
+        if floored == 8 { out += "8"; };
+        if floored == 9 { out += "9"; };
     }
 }
 
-to_number(342323);
+to_number(42323);
 print(out);

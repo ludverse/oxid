@@ -30,7 +30,7 @@ impl ExprAssign {
 }
 
 impl Evaluable for ExprAssign {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         let value = self.value.get_type(parser)?;
         let old = parser.sim_memory.get(&self.path[0])
             .ok_or(ParseErrKind::UnknownField(self.path[0].clone()))?;

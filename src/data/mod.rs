@@ -4,6 +4,7 @@ use crate::interpreter::Interpreter;
 use crate::operations::Operation;
 use crate::parser::Parser;
 use crate::expressions::{Evaluable, Expr};
+use crate::statements::r#fn::FunctionDeclaration;
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -11,15 +12,17 @@ pub enum Data {
     String(String),
     Number(f64),
     Bool(bool),
+    Fn(FunctionDeclaration),
     TempNil // just a temporary null value in the meantime as we dont have empty tuples yet
 }
 
 impl Data {
-    pub fn to_type(&self) -> Type {
-        match self {
+    pub fn get_type(&self) -> Type {
+        match &self {
             Data::String(val) => Type::String,
             Data::Number(val) => Type::Number,
             Data::Bool(val) => Type::Bool,
+            Data::Fn(val) => Type::Fn(val.signature.clone()),
             Data::TempNil => Type::TempNil
         }
     }
@@ -39,8 +42,8 @@ impl ExprLiteral {
 }
 
 impl Evaluable for ExprLiteral {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        Ok(self.data.to_type())
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+        Ok(self.data.get_type())
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -66,7 +69,7 @@ impl ExprBinary {
 }
 
 impl Evaluable for ExprBinary {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         let lhs = self.lhs.get_type(parser)?;
         let rhs = self.rhs.get_type(parser)?;
 

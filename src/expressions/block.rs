@@ -44,7 +44,7 @@ impl ExprBlock {
 }
 
 impl Evaluable for ExprBlock {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         let last_statement = self.body.last();
 
         match last_statement {

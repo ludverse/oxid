@@ -21,7 +21,7 @@ impl ExprIndex {
 }
 
 impl Evaluable for ExprIndex {
-    fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         self.value.get_type(parser)
     }
 
