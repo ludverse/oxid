@@ -22,7 +22,7 @@ fn main() -> ExitCode {
     let mut parser = Parser::new(collector);
     let program = parser.generate_program();
 
-    dbg!(&program);
+    // dbg!(&program);
 
     let mut interpreter = Interpreter::new(program);
     interpreter.run();

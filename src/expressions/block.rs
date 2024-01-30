@@ -28,7 +28,7 @@ impl ExprBlock {
             let next_token = parser.collector.next();
             match next_token.token {
                 TokenType::RightCurly => break,
-                _ => body.push(Statement::parse(parser, next_token)?)
+                _ => body.push(Statement::parse_statement(parser, next_token)?)
             }
         }
 

@@ -25,12 +25,11 @@ impl ExprMethod {
 
 impl Evaluable for ExprMethod {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        dbg!(&self.name);
         if let Some(builtin) = BuiltinFunc::from_name(&self.name) {
             return Ok(builtin.return_type())
         }
 
-        if let Some(signature) = parser.functions.get(&self.name) {
+        if let Some(Type::Fn(signature)) = parser.sim_memory.get(&self.name) {
             return Ok(*signature.ret.clone())
         }
 
@@ -51,13 +50,18 @@ impl Evaluable for ExprMethod {
             return builtin.eval(args);
         }
 
-        if let Some(func_decl) = interpreter.functions.get(&self.name).cloned() {
+        if let Some(Data::Fn(func_decl)) = interpreter.memory.get(&self.name).cloned() {
+            interpreter.memory.push_scope();
+
             for (i, arg_data) in args.iter().enumerate() {
                 let arg_type = &func_decl.signature.args[i];
                 interpreter.memory.insert(arg_type.0.to_string(), arg_data.clone());
             }
 
-            return func_decl.body.eval(interpreter)
+            let res = func_decl.body.eval(interpreter);
+            interpreter.memory.pop_scope();
+
+            return res;
         }
 
         panic!("should have already been caught by the parser")
@@ -92,7 +96,7 @@ pub fn parse(parser: &mut Parser, first_token: &Token, name: &String) -> Result<
         return Ok(Expr::Method(ExprMethod::new(name.to_string(), args)));
     }
 
-    if let Some(signature) = parser.functions.get(name) {
+    if let Some(Type::Fn(signature)) = parser.sim_memory.get(name) {
         return Ok(Expr::Method(ExprMethod::new(name.to_string(), args)));
     }
 

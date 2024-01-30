@@ -23,7 +23,7 @@ pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr>
                 let next_token = parser.collector.next();
                 let expr = Expr::parse_expr(parser, next_token)?;
 
-                if !parser.sim_memory.contains_key(name) {
+                if !parser.sim_memory.has(name) {
                     return Err(ParseErrKind::UnknownField(name.to_string()).to_err(first_token.pos));
                 }
                 Ok(Expr::Assign(ExprAssign::new(operation, vec![name.to_string()], Box::new(expr))))
@@ -33,7 +33,7 @@ pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr>
 
                 parser.collector.back();
 
-                if !parser.sim_memory.contains_key(name) {
+                if !parser.sim_memory.has(name) {
                     return Err(ParseErrKind::UnknownField(name.to_string()).to_err(first_token.pos));
                 }
                 Ok(Expr::Path(ExprPath::new(vec![name.to_string()])))

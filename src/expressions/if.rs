@@ -37,8 +37,11 @@ impl Evaluable for ExprIf {
         match condition_expr {
             Data::Bool(val) => {
                 if val {
+                    interpreter.memory.push_scope();
                     self.body.eval(interpreter);
+                    interpreter.memory.pop_scope();
                 }
+
                 Data::TempNil
             },
             _ => panic!("temp")
@@ -50,8 +53,10 @@ pub fn parse(parser: &mut Parser) -> Result<Expr, ParseErr> {
     let next_token = parser.collector.next();
     let condition_expr = Expr::parse_expr(parser, next_token)?;
 
+    parser.sim_memory.push_scope();
     let next_token = parser.collector.next();
     let body = ExprBlock::parse_block(parser, next_token)?;
+    parser.sim_memory.pop_scope();
 
     let if_expr = ExprIf::new(Box::new(condition_expr), body);
     Ok(Expr::If(if_expr))

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::memory::Memory;
 use crate::statements::r#fn::FunctionSignature;
 use crate::tokenizer::{Token, TokenType};
 use crate::statements::Statement;
@@ -24,16 +25,14 @@ impl Program {
 
 pub struct Parser<'a> {
     pub collector: TokenCollector<'a>,
-    pub sim_memory: HashMap<String, Type>,
-    pub functions: HashMap<String, FunctionSignature>
+    pub sim_memory: Memory<Type>
 }
 
 impl<'a> Parser<'a> {
     pub fn new(collector: TokenCollector<'a>) -> Parser<'a> {
         Parser {
             collector,
-            sim_memory: HashMap::new(),
-            functions: HashMap::new()
+            sim_memory: Memory::new()
         }
     }
 
@@ -49,7 +48,7 @@ impl<'a> Parser<'a> {
             match next_token.token {
                 TokenType::EOF => return Program::new(statements),
                 _ => {
-                    let statement = Statement::parse(self, next_token).unwrap_or_else(|err| err.report());
+                    let statement = Statement::parse_statement(self, next_token).unwrap_or_else(|err| err.report());
                     statements.push(statement);
                 }
             }

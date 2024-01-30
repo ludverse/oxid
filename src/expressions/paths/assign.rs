@@ -50,7 +50,7 @@ impl Evaluable for ExprAssign {
             AssignOp::AddEq => Operation::Add.op(old, &value)
         };
 
-        interpreter.memory.insert(self.path[0].to_string(), data.clone());
+        interpreter.memory.assign(self.path[0].to_string(), data.clone());
 
         data
     }

@@ -41,9 +41,11 @@ impl Evaluable for ExprFor {
                 match end_i {
                     Data::Number(end_i) => {
                         for i in start_i as usize..end_i as usize {
+                            interpreter.memory.push_scope();
                             interpreter.memory.insert(self.index_var.to_string(), Data::Number(i as f64));
 
                             self.body.eval(interpreter);
+                            interpreter.memory.pop_scope();
                         }
                     },
                     _ => ()
@@ -75,12 +77,14 @@ pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr>
                             let next_token = parser.collector.next();
                             let end_expr = Expr::parse_expr(parser, next_token)?;
 
+                            parser.sim_memory.push_scope();
                             parser.sim_memory.insert(index_var.to_string(), Type::Number);
 
                             let next_token = parser.collector.next();
                             let body = ExprBlock::parse_block(parser, next_token)?;
-                            let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
+                            parser.sim_memory.pop_scope();
 
+                            let for_expr = ExprFor::new(Box::new(start_expr), Box::new(end_expr), index_var.to_string(), body);
                             Ok(Expr::For(for_expr))
 
                         },

@@ -1,7 +1,7 @@
 pub mod tokenizer;
 pub mod parser;
-// pub mod memory;
 pub mod interpreter;
+pub mod memory;
 pub mod statements;
 pub mod expressions;
 pub mod data;

@@ -1,7 +1,9 @@
 let LOOK_LEN = 9;
 let mut out = "";
 
-fn to_number(x: Number) {
+fn to_string(x: Number) {
+    out = "";
+
     for i in 0..LOOK_LEN {
         let i = LOOK_LEN - 1 - i;
 
@@ -29,5 +31,11 @@ fn to_number(x: Number) {
     }
 }
 
-to_number(42323);
-print(out);
+fn f() {
+    for u in 0..4 {
+        to_string(u);
+        print(out);
+    }
+}
+
+f();

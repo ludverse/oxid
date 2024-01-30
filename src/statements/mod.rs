@@ -36,7 +36,7 @@ impl Statement {
         }
     }
 
-    pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Statement, ParseErr> {
+    pub fn parse_statement(parser: &mut Parser, first_token: &Token) -> Result<Statement, ParseErr> {
         let res = match first_token.token {
             TokenType::Let => VariableAssignment::parse(parser, first_token),
             TokenType::Fn => FunctionDeclaration::parse(parser, first_token),

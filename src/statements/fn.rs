@@ -47,7 +47,7 @@ impl FunctionDeclaration {
 
 impl Executable for FunctionDeclaration {
     fn exec(&self, interpreter: &mut Interpreter) {
-        interpreter.functions.insert(self.name.to_string(), self.clone());
+        interpreter.memory.insert(self.name.to_string(), Data::Fn(self.clone()));
     }
 }
 
@@ -64,17 +64,18 @@ impl ParseableStatement for FunctionDeclaration {
 
                         let args = parse_args(parser)?;
 
+                        parser.sim_memory.push_scope();
                         for arg in args.iter() {
                             parser.sim_memory.insert(arg.0.to_string(), arg.1.clone());
                         }
 
                         let first_token = parser.collector.next();
                         let body = ExprBlock::parse_block(parser, first_token)?;
+                        parser.sim_memory.pop_scope();
 
                         let func_decl = FunctionDeclaration::new(name.to_string(), args, Box::new(Type::Bool), body);
 
-                        parser.functions.insert(name.to_string(), func_decl.signature.clone());
-
+                        parser.sim_memory.insert(name.to_string(), Type::Fn(func_decl.signature.clone()));
                         Ok(Statement::FunctionDeclaration(func_decl))
 
                     }
