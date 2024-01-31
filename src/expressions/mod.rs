@@ -41,7 +41,7 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn get_type(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    pub fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         match self {
             Expr::Literal(literal_expr) => literal_expr.typ(parser),
             Expr::Binary(binary_expr) => binary_expr.typ(parser),
@@ -89,7 +89,7 @@ impl Expr {
     pub fn parse_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
         let mut lhs_pos = first_token.pos;
         let mut lhs = Box::new(Expr::parse_token_expr(parser, first_token)?);
-        let mut lhs_type = map_err_token(lhs.get_type(parser), first_token)?;
+        let mut lhs_type = map_err_token(lhs.typ(parser), first_token)?;
 
         destructive_loop!({
 
@@ -97,28 +97,28 @@ impl Expr {
             if let Some(operation) = next_token.token.to_operation() {
                 let rhs_token = parser.collector.next();
                 let rhs = Box::new(Expr::parse_token_expr(parser, rhs_token)?);
-                let rhs_type = map_err_token(rhs.get_type(parser), rhs_token)?;
+                let rhs_type = map_err_token(rhs.typ(parser), rhs_token)?;
 
                 operation.typ(&lhs_type, &rhs_type)
                     .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
 
                 lhs_pos = rhs_token.pos;
                 lhs = Box::new(Expr::Binary(ExprBinary::new(operation, lhs, rhs)));
-                lhs_type = lhs.get_type(parser)
+                lhs_type = lhs.typ(parser)
                     .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
             } else {
                 match &next_token.token {
                     TokenType::LeftBrace => {
                         let index_token = parser.collector.next();
                         let index_expr = Expr::parse_expr(parser, index_token)?;
-                        let expr_type = map_err_token(index_expr.get_type(parser), index_token)?;
+                        let expr_type = map_err_token(index_expr.typ(parser), index_token)?;
 
                         let next_token = parser.collector.next();
                         match &next_token.token {
                             TokenType::RightBrace => {
                                 lhs_pos = index_token.pos;
                                 lhs = Box::new(Expr::Index(ExprIndex::new(Box::new(index_expr), lhs)));
-                                lhs_type = lhs.get_type(parser)
+                                lhs_type = lhs.typ(parser)
                                     .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
                             },
                             _ => return Err(parser.unexpected_token(next_token, "RightBracket"))

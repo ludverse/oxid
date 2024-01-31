@@ -70,8 +70,8 @@ impl ExprBinary {
 
 impl Evaluable for ExprBinary {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let lhs = self.lhs.get_type(parser)?;
-        let rhs = self.rhs.get_type(parser)?;
+        let lhs = self.lhs.typ(parser)?;
+        let rhs = self.rhs.typ(parser)?;
 
         self.operation.typ(&lhs, &rhs)
     }

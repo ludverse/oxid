@@ -48,7 +48,7 @@ impl Evaluable for ExprBlock {
         let last_statement = self.body.last();
 
         match last_statement {
-            Some(Statement::Expr(expr)) => Ok(expr.get_type(parser)?),
+            Some(Statement::Expr(expr)) => Ok(expr.typ(parser)?),
             _ => Ok(Type::TempNil)
         }
     }

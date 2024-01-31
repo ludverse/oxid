@@ -48,7 +48,7 @@ impl ParseableStatement for VariableAssignment {
 
                         let expr_token = parser.collector.next();
                         let expr = Expr::parse_expr(parser, expr_token)?;
-                        let expr_type = expr.get_type(parser)
+                        let expr_type = expr.typ(parser)
                             .map_err(|err_kind| err_kind.to_err(expr_token.pos))?;
 
                         parser.sim_memory.insert(name.to_string(), expr_type);

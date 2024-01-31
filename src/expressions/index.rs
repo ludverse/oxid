@@ -22,7 +22,7 @@ impl ExprIndex {
 
 impl Evaluable for ExprIndex {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        self.value.get_type(parser)
+        self.value.typ(parser)
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {

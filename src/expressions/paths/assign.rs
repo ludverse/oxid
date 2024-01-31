@@ -31,12 +31,12 @@ impl ExprAssign {
 
 impl Evaluable for ExprAssign {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let value = self.value.get_type(parser)?;
+        let value = self.value.typ(parser)?;
         let old = parser.sim_memory.get(&self.path[0])
             .ok_or(ParseErrKind::UnknownField(self.path[0].clone()))?;
 
         match self.op {
-            AssignOp::Eq => self.value.get_type(parser),
+            AssignOp::Eq => self.value.typ(parser),
             AssignOp::AddEq => Operation::Add.typ(old, &value)
         }
     }
