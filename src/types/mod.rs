@@ -5,7 +5,10 @@ pub enum Type {
     String,
     Number,
     Bool,
-    Fn(FunctionSignature),
+    Fn {
+        args: Vec<(String, Type)>,
+        return_value: Box<Type>
+    },
     TempNil
 }
 
@@ -15,7 +18,7 @@ impl Type {
             Self::String => Some(String::from("String")),
             Self::Number => Some(String::from("Number")),
             Self::Bool => Some(String::from("Bool")),
-            Self::Fn(_) => Some(String::from("Fn")),
+            Self::Fn { args, return_value } => Some(String::from("Fn")),
             _ => None
         }
     }

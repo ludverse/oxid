@@ -8,38 +8,20 @@ use crate::parser::Parser;
 use crate::statements::{Executable, ParseableStatement, Statement};
 use crate::types::Type;
 
-pub type DataArgs = Vec<Data>;
-pub type SignatureArgs = Vec<(String, Type)>;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct FunctionSignature {
-    pub args: SignatureArgs,
-    pub ret: Box<Type>,
-}
-
-impl FunctionSignature {
-    fn new(args: Vec<(String, Type)>, ret: Box<Type>) -> FunctionSignature {
-        FunctionSignature {
-            args,
-            ret
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct FunctionDeclaration {
     pub name: String,
-    pub signature: FunctionSignature,
+    pub args: Vec<(String, Type)>,
+    pub return_value: Box<Type>,
     pub body: ExprBlock
 }
 
 impl FunctionDeclaration {
-    fn new(name: String, args: Vec<(String, Type)>, ret: Box<Type>, body: ExprBlock) -> FunctionDeclaration {
-        let signature = FunctionSignature::new(args, ret);
-
+    fn new(name: String, args: Vec<(String, Type)>, return_value: Box<Type>, body: ExprBlock) -> FunctionDeclaration {
         FunctionDeclaration {
             name,
-            signature,
+            args,
+            return_value,
             body
         }
     }
@@ -73,10 +55,11 @@ impl ParseableStatement for FunctionDeclaration {
                         let body = ExprBlock::parse_block(parser, first_token)?;
                         parser.sim_memory.pop_scope();
 
-                        let func_decl = FunctionDeclaration::new(name.to_string(), args, Box::new(Type::Bool), body);
+                        let fn_decl = FunctionDeclaration::new(name.to_string(), args, Box::new(Type::Bool), body);
+                        let fn_type = Type::Fn { args, return_value: fn_decl.return_value };
 
-                        parser.sim_memory.insert(name.to_string(), Type::Fn(func_decl.signature.clone()));
-                        Ok(Statement::FunctionDeclaration(func_decl))
+                        parser.sim_memory.insert(name.to_string(), fn_type);
+                        Ok(Statement::FunctionDeclaration(fn_decl))
 
                     }
                     _ => Err(parser.unexpected_token(next_token, "LeftParen"))

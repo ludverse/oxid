@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::memory::Memory;
-use crate::statements::r#fn::FunctionSignature;
 use crate::tokenizer::{Token, TokenType};
 use crate::statements::Statement;
 use crate::errors::{ParseErrKind, ParseErr};
