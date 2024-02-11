@@ -39,7 +39,7 @@ pub enum TokenType {
 
     Colon,
     Semicolon,
-    Dot, Range,
+    Dot, Spread,
     Comma,
 
     Fn, Let, Mut, For, In, If, Else, Match,
@@ -117,7 +117,7 @@ impl TokenType {
             ':' => Self::Colon,
             ';' => Self::Semicolon,
             '.' => match next_char() {
-                Some('.') => Self::Range,
+                Some('.') => Self::Spread,
                 _ => decrease_len(Self::Dot),
             },
             ',' => Self::Comma,

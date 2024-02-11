@@ -10,12 +10,22 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn get_name(&self) -> Option<String> {
+        match self {
+            Self::String => Some(String::from("String")),
+            Self::Number => Some(String::from("Number")),
+            Self::Bool => Some(String::from("Bool")),
+            Self::Fn(_) => Some(String::from("Fn")),
+            _ => None
+        }
+    }
+
     pub fn from_name(name: &String) -> Option<Type> {
         match &name[..] {
-            "String" => Some(Type::String),
-            "Number" => Some(Type::Number),
-            "Bool" => Some(Type::Bool),
-            "Fn" => Some(Type::Bool),
+            "String" => Some(Self::String),
+            "Number" => Some(Self::Number),
+            "Bool" => Some(Self::Bool),
+            "Fn" => unimplemented!(), // TODO
             _ => None
         }
     }

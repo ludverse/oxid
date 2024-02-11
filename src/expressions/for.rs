@@ -58,7 +58,7 @@ impl Evaluable for ExprFor {
     }
 }
 
-pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
+pub fn parse(parser: &mut Parser, _first_token: &Token) -> Result<Expr, ParseErr> {
     let next_token = parser.collector.next();
     match &next_token.token {
         TokenType::Identifier(index_var) => {
@@ -72,7 +72,7 @@ pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr>
 
                     let next_token = parser.collector.next();
                     match next_token.token {
-                        TokenType::Range => {
+                        TokenType::Spread => {
 
                             let next_token = parser.collector.next();
                             let end_expr = Expr::parse_expr(parser, next_token)?;
