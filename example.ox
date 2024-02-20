@@ -33,9 +33,6 @@ fn to_string(x: Number) {
 
 fn f() {
     for u in 0..4 {
-        to_string(u);
-        print(out);
     }
 }
 
-f();

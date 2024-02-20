@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Memory<T> {
-    scopes: Vec<HashMap<String, T>>
+    pub scopes: Vec<HashMap<String, T>>
 }
 
 impl<T> Memory<T> {

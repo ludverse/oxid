@@ -56,7 +56,7 @@ impl ParseableStatement for FunctionDeclaration {
                         parser.sim_memory.pop_scope();
 
                         let fn_decl = FunctionDeclaration::new(name.to_string(), args, Box::new(Type::Bool), body);
-                        let fn_type = Type::Fn { args, return_type: fn_decl.return_type };
+                        let fn_type = Type::Fn { args: fn_decl.args.clone(), return_type: fn_decl.return_type.clone() };
 
                         parser.sim_memory.insert(name.to_string(), fn_type);
                         Ok(Statement::FunctionDeclaration(fn_decl))

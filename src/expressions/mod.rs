@@ -1,4 +1,3 @@
-use crate::expressions::index::ExprIndex;
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind, map_err_token};
@@ -8,18 +7,21 @@ use crate::data::{Data, ExprLiteral, ExprBinary};
 use crate::types::Type;
 use crate::helpers::destructive_loop;
 
-use paths::{ExprPath, ExprMethod, ExprAssign};
+use index::ExprIndex;
+use bang::ExprUnary;
+use path::ExprPath;
+use assign::ExprAssign;
+use block::ExprBlock;
 use r#for::ExprFor;
 use r#if::ExprIf;
-use bang::ExprUnary;
-use block::ExprBlock;
 
-pub mod paths;
+pub mod index;
+pub mod bang;
+pub mod path;
+pub mod assign;
+pub mod block;
 pub mod r#for;
 pub mod r#if;
-pub mod bang;
-pub mod index;
-pub mod block;
 
 pub trait Evaluable {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
@@ -33,7 +35,7 @@ pub enum Expr {
     Index(ExprIndex),
     Unary(ExprUnary),
     Path(ExprPath),
-    Method(ExprMethod),
+    Method(),
     Assign(ExprAssign),
     Block(ExprBlock),
     For(ExprFor),
@@ -48,7 +50,7 @@ impl Expr {
             Expr::Index(index_expr) => index_expr.typ(parser),
             Expr::Unary(_) => unimplemented!(),
             Expr::Path(path_expr) => path_expr.typ(parser),
-            Expr::Method(expr_method) => expr_method.typ(parser),
+            Expr::Method() => unimplemented!(), //expr_method.typ(parser),
             Expr::Assign(assign_expr) => assign_expr.typ(parser),
             Expr::Block(block_expr) => block_expr.typ(parser),
             Expr::For(for_expr) => for_expr.typ(parser),
@@ -63,7 +65,8 @@ impl Expr {
             Expr::Index(index_expr) => index_expr.eval(interpreter),
             Expr::Unary(_) => unimplemented!(),
             Expr::Path(path_expr) => path_expr.eval(interpreter),
-            Expr::Method(expr_method) => expr_method.eval(interpreter),
+            Expr::Method() => unimplemented!(),
+            // Expr::Method(expr_method) => expr_method.eval(interpreter),
             Expr::Assign(assign_expr) => assign_expr.eval(interpreter),
             Expr::Block(block_expr) => block_expr.eval(interpreter),
             Expr::For(for_expr) => for_expr.eval(interpreter),
@@ -71,14 +74,14 @@ impl Expr {
         }
     }
 
-    fn parse_token_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
+    fn parse_expr_side(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
         if let Some(data) = first_token.token.to_data() {
             let literal_expr = ExprLiteral::new(data);
             return Ok(Expr::Literal(literal_expr));
         }
 
         match first_token.token {
-            TokenType::Identifier(_) => paths::parse(parser, first_token),
+            TokenType::Identifier(_) => path::parse(parser, first_token),
             TokenType::For => r#for::parse(parser, first_token),
             TokenType::If => r#if::parse(parser),
             TokenType::LeftCurly => r#block::parse(parser),
@@ -87,52 +90,55 @@ impl Expr {
     }
 
     pub fn parse_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
-        let mut lhs_pos = first_token.pos;
-        let mut lhs = Box::new(Expr::parse_token_expr(parser, first_token)?);
-        let mut lhs_type = map_err_token(lhs.typ(parser), first_token)?;
+        let mut expr_pos = first_token.pos;
+        let mut expr = Expr::parse_expr_side(parser, first_token)?;
+        let mut expr_type = map_err_token(expr.typ(parser), first_token)?;
 
         destructive_loop!({
 
             let next_token = parser.collector.next();
             if let Some(operation) = next_token.token.to_operation() {
+
                 let rhs_token = parser.collector.next();
-                let rhs = Box::new(Expr::parse_token_expr(parser, rhs_token)?);
+                let rhs = Box::new(Expr::parse_expr_side(parser, rhs_token)?);
                 let rhs_type = map_err_token(rhs.typ(parser), rhs_token)?;
 
-                operation.typ(&lhs_type, &rhs_type)
-                    .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
+                operation.typ(&expr_type, &rhs_type)
+                    .map_err(|err_kind| err_kind.to_err(expr_pos))?;
 
-                lhs_pos = rhs_token.pos;
-                lhs = Box::new(Expr::Binary(ExprBinary::new(operation, lhs, rhs)));
-                lhs_type = lhs.typ(parser)
-                    .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
+                expr_pos = rhs_token.pos;
+                expr = Expr::Binary(ExprBinary::new(operation, Box::new(expr), rhs));
+                expr_type = expr.typ(parser)
+                    .map_err(|err_kind| err_kind.to_err(expr_pos))?;
+
+            } else if let Some(assign_op) = next_token.token.to_assign_op() {
+
+                match expr {
+                    Expr::Path(path_expr) => {
+
+                        let rhs_token = parser.collector.next();
+                        let rhs = Expr::parse_expr(parser, rhs_token)?;
+
+                        expr = Expr::Assign(ExprAssign::new(assign_op, path_expr.field, Box::new(rhs)));
+
+                    },
+                    _ => return Err(ParseErrKind::InvalidLeftHandsideOfAssignment(format!("{:?}", expr)).to_err(expr_pos))
+                }
+
             } else {
                 match &next_token.token {
                     TokenType::LeftBrace => {
-                        let index_token = parser.collector.next();
-                        let index_expr = Expr::parse_expr(parser, index_token)?;
-                        let expr_type = map_err_token(index_expr.typ(parser), index_token)?;
-
-                        let next_token = parser.collector.next();
-                        match &next_token.token {
-                            TokenType::RightBrace => {
-                                lhs_pos = index_token.pos;
-                                lhs = Box::new(Expr::Index(ExprIndex::new(Box::new(index_expr), lhs)));
-                                lhs_type = lhs.typ(parser)
-                                    .map_err(|err_kind| err_kind.to_err(lhs_pos))?;
-                            },
-                            _ => return Err(parser.unexpected_token(next_token, "RightBracket"))
-                        }
+                        // indexing
                     },
                     _ => {
                         parser.collector.back();
-                        return Ok(*lhs)
+                        break
                     }
                 }
             }
         });
 
-        unreachable!()
+        Ok(expr)
     }
 }
 

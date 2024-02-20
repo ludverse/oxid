@@ -1,7 +1,7 @@
 use crate::errors::ParseErrKind;
 use crate::data::Data;
 use crate::operations::Operation;
-use crate::expressions::paths::AssignOp;
+use crate::expressions::assign::AssignOp;
 
 #[derive(Debug, Clone)]
 pub struct Token {
