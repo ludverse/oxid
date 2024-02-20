@@ -12,16 +12,16 @@ use crate::types::Type;
 pub struct FunctionDeclaration {
     pub name: String,
     pub args: Vec<(String, Type)>,
-    pub return_value: Box<Type>,
+    pub return_type: Box<Type>,
     pub body: ExprBlock
 }
 
 impl FunctionDeclaration {
-    fn new(name: String, args: Vec<(String, Type)>, return_value: Box<Type>, body: ExprBlock) -> FunctionDeclaration {
+    fn new(name: String, args: Vec<(String, Type)>, return_type: Box<Type>, body: ExprBlock) -> FunctionDeclaration {
         FunctionDeclaration {
             name,
             args,
-            return_value,
+            return_type,
             body
         }
     }
@@ -56,7 +56,7 @@ impl ParseableStatement for FunctionDeclaration {
                         parser.sim_memory.pop_scope();
 
                         let fn_decl = FunctionDeclaration::new(name.to_string(), args, Box::new(Type::Bool), body);
-                        let fn_type = Type::Fn { args, return_value: fn_decl.return_value };
+                        let fn_type = Type::Fn { args, return_type: fn_decl.return_type };
 
                         parser.sim_memory.insert(name.to_string(), fn_type);
                         Ok(Statement::FunctionDeclaration(fn_decl))

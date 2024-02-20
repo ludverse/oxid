@@ -1,5 +1,3 @@
-use crate::statements::r#fn::FunctionSignature;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     String,
@@ -7,7 +5,7 @@ pub enum Type {
     Bool,
     Fn {
         args: Vec<(String, Type)>,
-        return_value: Box<Type>
+        return_type: Box<Type>
     },
     TempNil
 }
@@ -18,7 +16,7 @@ impl Type {
             Self::String => Some(String::from("String")),
             Self::Number => Some(String::from("Number")),
             Self::Bool => Some(String::from("Bool")),
-            Self::Fn { args, return_value } => Some(String::from("Fn")),
+            Self::Fn { args, return_type } => Some(String::from("Fn")),
             _ => None
         }
     }

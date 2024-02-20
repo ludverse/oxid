@@ -22,7 +22,7 @@ impl Data {
             Data::String(val) => Type::String,
             Data::Number(val) => Type::Number,
             Data::Bool(val) => Type::Bool,
-            Data::Fn(val) => Type::Fn(val.signature.clone()),
+            Data::Fn(fn_decl) => Type::Fn { val.signature.clone()),
             Data::TempNil => Type::TempNil
         }
     }

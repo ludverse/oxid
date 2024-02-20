@@ -29,8 +29,8 @@ impl Evaluable for ExprMethod {
             return Ok(builtin.return_type())
         }
 
-        if let Some(Type::Fn(signature)) = parser.sim_memory.get(&self.name) {
-            return Ok(*signature.ret.clone())
+        if let Some(Type::Fn { args, return_type }) = parser.sim_memory.get(&self.name) {
+            return Ok(**return_type)
         }
 
         panic!("should have already been caught by the parser")
@@ -54,7 +54,7 @@ impl Evaluable for ExprMethod {
             interpreter.memory.push_scope();
 
             for (i, arg_data) in args.iter().enumerate() {
-                let arg_type = &func_decl.signature.args[i];
+                let arg_type = &func_decl.args[i];
                 interpreter.memory.insert(arg_type.0.to_string(), arg_data.clone());
             }
 
@@ -69,7 +69,7 @@ impl Evaluable for ExprMethod {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, name: &String) -> Result<Expr, ParseErr> {
-    let mut args = vec![];
+    let mut args_values = vec![];
 
     destructive_loop!({
         let next_token = parser.collector.next();
@@ -82,7 +82,7 @@ pub fn parse(parser: &mut Parser, first_token: &Token, name: &String) -> Result<
         // handler doesn't support that so ill fix it in post
         let arg_expr = Expr::parse_expr(parser, next_token)?;
 
-        args.push(Box::new(arg_expr));
+        args_values.push(Box::new(arg_expr));
 
         let next_token = parser.collector.next();
         match &next_token.token {
@@ -93,11 +93,11 @@ pub fn parse(parser: &mut Parser, first_token: &Token, name: &String) -> Result<
     });
 
     if let Some(builtin) = BuiltinFunc::from_name(name) {
-        return Ok(Expr::Method(ExprMethod::new(name.to_string(), args)));
+        return Ok(Expr::Method(ExprMethod::new(name.to_string(), args_values)));
     }
 
-    if let Some(Type::Fn(signature)) = parser.sim_memory.get(name) {
-        return Ok(Expr::Method(ExprMethod::new(name.to_string(), args)));
+    if let Some(Type::Fn { args, return_type }) = parser.sim_memory.get(name) {
+        return Ok(Expr::Method(ExprMethod::new(name.to_string(), args_values)));
     }
 
     Err(ParseErrKind::UnknownField(name.to_string()).to_err(first_token.pos))
