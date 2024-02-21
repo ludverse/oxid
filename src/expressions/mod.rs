@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind, map_err_token};
@@ -10,6 +12,7 @@ use crate::helpers::destructive_loop;
 use index::ExprIndex;
 use bang::ExprUnary;
 use path::ExprField;
+use call::ExprCall;
 use assign::ExprAssign;
 use block::ExprBlock;
 use r#for::ExprFor;
@@ -18,18 +21,19 @@ use r#if::ExprIf;
 pub mod index;
 pub mod bang;
 pub mod path;
+pub mod call;
 pub mod assign;
 pub mod block;
 pub mod r#for;
 pub mod r#if;
 
-pub trait Evaluable {
+pub trait Evaluable: Debug {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
 
     fn mangle_path(&self) -> Result<String, ParseErrKind> {
-        Err(ParseErrKind::UnknownField("HI".to_string()))
+        Err(ParseErrKind::InvalidPathUse(format!("{:?}", self)))
     }
 }
 
@@ -40,7 +44,7 @@ pub enum Expr {
     Index(ExprIndex),
     Unary(ExprUnary),
     Field(ExprField),
-    Call(),
+    Call(ExprCall),
     Assign(ExprAssign),
     Block(ExprBlock),
     For(ExprFor),
@@ -55,7 +59,7 @@ impl Expr {
             Expr::Index(index_expr) => index_expr.typ(parser),
             Expr::Unary(_) => unimplemented!(),
             Expr::Field(field_expr) => field_expr.typ(parser),
-            Expr::Call() => unimplemented!(), //expr_method.typ(parser),
+            Expr::Call(call_expr) => call_expr.typ(parser),
             Expr::Assign(assign_expr) => assign_expr.typ(parser),
             Expr::Block(block_expr) => block_expr.typ(parser),
             Expr::For(for_expr) => for_expr.typ(parser),
@@ -70,8 +74,7 @@ impl Expr {
             Expr::Index(index_expr) => index_expr.eval(interpreter),
             Expr::Unary(_) => unimplemented!(),
             Expr::Field(field_expr) => field_expr.eval(interpreter),
-            Expr::Call() => unimplemented!(),
-            // Expr::Method(expr_method) => expr_method.eval(interpreter),
+            Expr::Call(call_expr) => call_expr.eval(interpreter),
             Expr::Assign(assign_expr) => assign_expr.eval(interpreter),
             Expr::Block(block_expr) => block_expr.eval(interpreter),
             Expr::For(for_expr) => for_expr.eval(interpreter),

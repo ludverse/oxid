@@ -1,3 +1,4 @@
-let a = 2;
-a = hi.bye;
+let hi = "so";
+let b = "no";
+hi.b = "cardi";
 

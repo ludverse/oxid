@@ -1,8 +1,10 @@
 use crate::data::Data;
+use crate::errors::ParseErrKind;
 use crate::types::Type;
 
 pub mod print;
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum BuiltinFunc {
     Print,
 }
@@ -15,15 +17,9 @@ impl BuiltinFunc {
         }
     }
 
-    pub fn arg_types(&self) -> &'static [(&'static str, Type)] {
+    pub fn type_check(&self, args: Vec<Type>) -> Result<Type, ParseErrKind>{
         match self {
-            BuiltinFunc::Print => print::arg_types()
-        }
-    }
-
-    pub fn return_type(&self) -> Type {
-        match self {
-            BuiltinFunc::Print => print::return_type()
+            BuiltinFunc::Print => print::type_check(args)
         }
     }
 

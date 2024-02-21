@@ -11,7 +11,7 @@ impl ParseErr {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ParseErrKind {
     UnexpectedChar(char),
     UnexpectedToken(String, String),

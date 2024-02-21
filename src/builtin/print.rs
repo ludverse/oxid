@@ -1,13 +1,10 @@
 use crate::data::Data;
+use crate::errors::ParseErrKind;
 use crate::interpreter::Interpreter;
 use crate::types::Type;
 
-pub fn arg_types() -> &'static [(&'static str, Type)] {
-    &[("string", Type::String)]
-}
-
-pub fn return_type() -> Type {
-    Type::TempNil
+pub fn type_check(args: Vec<Type>) -> Result<Type, ParseErrKind> {
+    Ok(Type::TempNil)
 }
 
 pub fn eval(args: Vec<Data>) -> Data {
