@@ -18,7 +18,7 @@ pub enum ParseErrKind {
     UnknownField(String),
     InvalidOperation(Operation, String, String),
     UnmatchedDelimiter(char),
-    InvalidLeftHandsideOfAssignment(String)
+    InvalidPathUse(String)
 }
 
 impl ParseErrKind {
@@ -37,7 +37,7 @@ impl ParseErrKind {
             ParseErrKind::UnknownField(field) => format!("unknown field `{}`", field),
             ParseErrKind::InvalidOperation(operation, lhs, rhs) => format!("invalid {:?} on `{}` and `{}`", operation, lhs, rhs),
             ParseErrKind::UnmatchedDelimiter(c) => format!("unmatched delimiter `{}`", c),
-            ParseErrKind::InvalidLeftHandsideOfAssignment(field) => format!("invalid left handside of assignment, expected path, got {}", field),
+            ParseErrKind::InvalidPathUse(expr_type) => format!("cannot use {} as a path", expr_type),
         }
     }
 }

@@ -9,88 +9,38 @@ use crate::tokenizer::{TokenType, Token};
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
-pub struct Field {
-    field_name: String,
-    parent: Option<Box<Field>>
+pub struct ExprField {
+    pub field_name: String,
+    pub child: Option<Box<Expr>>
 }
 
-impl Field {
-    pub fn new(field_name: String, parent: Option<Box<Field>>) -> Self {
+impl ExprField {
+    pub fn new(field_name: String, child: Option<Box<Expr>>) -> Self {
         Self {
             field_name,
-            parent
-        }
-    }
-
-    pub fn mangle(&self) -> String {
-        let mut res = String::new();
-
-        if let Some(parent) = &self.parent {
-            res.push_str(&parent.mangle()[..]);
-            res.push('.');
-        }
-
-        res.push_str(&self.field_name[..]);
-
-        res
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ExprPath {
-    pub field: Field
-}
-
-impl ExprPath {
-    pub fn new(field: Field) -> Self {
-        Self {
-            field
+            child
         }
     }
 }
 
-impl Evaluable for ExprPath {
+impl Evaluable for ExprField {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let mangled = self.field.mangle();
-        dbg!(&parser.sim_memory.scopes);
+        let mangled = self.mangle_path()?;
         parser.sim_memory.get(&mangled)
             .ok_or(ParseErrKind::UnknownField(mangled))
             .cloned()
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
-        let mangled = self.field.mangle();
+        let mangled = self.mangle_path().unwrap();
         interpreter.memory.get(&mangled).unwrap().clone()
     }
-}
 
-pub fn parse(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
-    let mut next_token = first_token;
-
-    let mut field = None;
-
-    destructive_loop!({
-
-        match &next_token.token {
-            TokenType::Identifier(field_name) => {
-
-                let parent = field.map(|parent| Box::new(parent));
-                field = Some(Field::new(field_name.to_string(), parent));
-
-                let dot_token = parser.collector.next();
-                match &dot_token.token {
-                    TokenType::Dot => next_token = parser.collector.next(),
-                    _ => {
-                        parser.collector.back();
-                        break
-                    }
-                }
-
-            },
-            _ => return Err(parser.unexpected_token(next_token, "field"))
+    fn mangle_path(&self) -> Result<String, ParseErrKind> {
+        if let Some(child) = &self.child {
+            Ok(format!("{}.{}", child.mangle_path()?, self.field_name))
+        } else {
+            Ok(self.field_name.to_string())
         }
-
-    });
-
-    Ok(Expr::Path(ExprPath::new(field.unwrap())))
+    }
 }

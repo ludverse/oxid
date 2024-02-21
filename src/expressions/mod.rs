@@ -9,7 +9,7 @@ use crate::helpers::destructive_loop;
 
 use index::ExprIndex;
 use bang::ExprUnary;
-use path::ExprPath;
+use path::ExprField;
 use assign::ExprAssign;
 use block::ExprBlock;
 use r#for::ExprFor;
@@ -25,7 +25,12 @@ pub mod r#if;
 
 pub trait Evaluable {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
+
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
+
+    fn mangle_path(&self) -> Result<String, ParseErrKind> {
+        Err(ParseErrKind::UnknownField("HI".to_string()))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -34,8 +39,8 @@ pub enum Expr {
     Binary(ExprBinary),
     Index(ExprIndex),
     Unary(ExprUnary),
-    Path(ExprPath),
-    Method(),
+    Field(ExprField),
+    Call(),
     Assign(ExprAssign),
     Block(ExprBlock),
     For(ExprFor),
@@ -49,8 +54,8 @@ impl Expr {
             Expr::Binary(binary_expr) => binary_expr.typ(parser),
             Expr::Index(index_expr) => index_expr.typ(parser),
             Expr::Unary(_) => unimplemented!(),
-            Expr::Path(path_expr) => path_expr.typ(parser),
-            Expr::Method() => unimplemented!(), //expr_method.typ(parser),
+            Expr::Field(field_expr) => field_expr.typ(parser),
+            Expr::Call() => unimplemented!(), //expr_method.typ(parser),
             Expr::Assign(assign_expr) => assign_expr.typ(parser),
             Expr::Block(block_expr) => block_expr.typ(parser),
             Expr::For(for_expr) => for_expr.typ(parser),
@@ -64,13 +69,20 @@ impl Expr {
             Expr::Binary(binary_expr) => binary_expr.eval(interpreter),
             Expr::Index(index_expr) => index_expr.eval(interpreter),
             Expr::Unary(_) => unimplemented!(),
-            Expr::Path(path_expr) => path_expr.eval(interpreter),
-            Expr::Method() => unimplemented!(),
+            Expr::Field(field_expr) => field_expr.eval(interpreter),
+            Expr::Call() => unimplemented!(),
             // Expr::Method(expr_method) => expr_method.eval(interpreter),
             Expr::Assign(assign_expr) => assign_expr.eval(interpreter),
             Expr::Block(block_expr) => block_expr.eval(interpreter),
             Expr::For(for_expr) => for_expr.eval(interpreter),
             Expr::If(if_expr) => if_expr.eval(interpreter)
+        }
+    }
+
+    pub fn mangle_path(&self) -> Result<String, ParseErrKind> {
+        match self {
+            Expr::Field(field_expr) => field_expr.mangle_path(),
+            _ => Err(ParseErrKind::InvalidPathUse(format!("{:?}", self)))
         }
     }
 
@@ -80,8 +92,8 @@ impl Expr {
             return Ok(Expr::Literal(literal_expr));
         }
 
-        match first_token.token {
-            TokenType::Identifier(_) => path::parse(parser, first_token),
+        match &first_token.token {
+            TokenType::Identifier(field_name) => Ok(Expr::Field(ExprField::new(field_name.to_string(), None))),
             TokenType::For => r#for::parse(parser, first_token),
             TokenType::If => r#if::parse(parser),
             TokenType::LeftCurly => r#block::parse(parser),
@@ -90,7 +102,6 @@ impl Expr {
     }
 
     pub fn parse_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
-        let mut expr_pos = first_token.pos;
         let mut expr = Expr::parse_expr_side(parser, first_token)?;
         let mut expr_type = map_err_token(expr.typ(parser), first_token)?;
 
@@ -103,30 +114,39 @@ impl Expr {
                 let rhs = Box::new(Expr::parse_expr_side(parser, rhs_token)?);
                 let rhs_type = map_err_token(rhs.typ(parser), rhs_token)?;
 
-                operation.typ(&expr_type, &rhs_type)
-                    .map_err(|err_kind| err_kind.to_err(expr_pos))?;
+                // Check if operation is valid between lhs and rhs
+                map_err_token(operation.typ(&expr_type, &rhs_type), rhs_token)?;
 
-                expr_pos = rhs_token.pos;
                 expr = Expr::Binary(ExprBinary::new(operation, Box::new(expr), rhs));
-                expr_type = expr.typ(parser)
-                    .map_err(|err_kind| err_kind.to_err(expr_pos))?;
+                expr_type = map_err_token(expr.typ(parser), rhs_token)?;
 
             } else if let Some(assign_op) = next_token.token.to_assign_op() {
 
-                match expr {
-                    Expr::Path(path_expr) => {
+                // Check if lhs is able to be used as a path
+                map_err_token(expr.mangle_path(), next_token)?;
 
-                        let rhs_token = parser.collector.next();
-                        let rhs = Expr::parse_expr(parser, rhs_token)?;
+                let rhs_token = parser.collector.next();
+                let rhs = Expr::parse_expr(parser, rhs_token)?;
 
-                        expr = Expr::Assign(ExprAssign::new(assign_op, path_expr.field, Box::new(rhs)));
-
-                    },
-                    _ => return Err(ParseErrKind::InvalidLeftHandsideOfAssignment(format!("{:?}", expr)).to_err(expr_pos))
-                }
+                expr = Expr::Assign(ExprAssign::new(assign_op, Box::new(expr), Box::new(rhs)));
+                expr_type = map_err_token(expr.typ(parser), rhs_token)?;
 
             } else {
                 match &next_token.token {
+                    TokenType::Dot => {
+
+                        let next_token = parser.collector.next();
+                        match &next_token.token {
+                            TokenType::Identifier(name) => {
+
+                                expr = Expr::Field(ExprField::new(name.to_string(), Some(Box::new(expr))));
+                                expr_type = map_err_token(expr.typ(parser), next_token)?;
+
+                            },
+                            _ => return Err(parser.unexpected_token(next_token, "field"))
+                        }
+
+                    },
                     TokenType::LeftBrace => {
                         // indexing
                     },
