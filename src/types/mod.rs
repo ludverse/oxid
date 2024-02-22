@@ -1,3 +1,5 @@
+use crate::builtin::BuiltinFn;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     String,
@@ -7,6 +9,7 @@ pub enum Type {
         args_types: Vec<(String, Type)>,
         return_type: Box<Type>
     },
+    BuiltinFn(BuiltinFn),
     TempNil
 }
 

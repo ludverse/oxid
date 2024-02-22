@@ -141,23 +141,20 @@ impl Expr {
                         let next_token = parser.collector.next();
                         match &next_token.token {
                             TokenType::Identifier(name) => {
-
                                 expr = Expr::Field(ExprField::new(name.to_string(), Some(Box::new(expr))));
-                                expr_type = map_err_token(expr.typ(parser), next_token)?;
-
                             },
                             _ => return Err(parser.unexpected_token(next_token, "field"))
                         }
 
                     },
-                    TokenType::LeftBrace => {
-                        // indexing
-                    },
+                    TokenType::LeftParen => expr = call::parse(parser, next_token, expr)?,
                     _ => {
                         parser.collector.back();
                         break
                     }
                 }
+
+                expr_type = map_err_token(expr.typ(parser), next_token)?;
             }
         });
 

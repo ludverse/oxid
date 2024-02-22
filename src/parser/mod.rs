@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::builtin::BuiltinFn;
 use crate::memory::Memory;
 use crate::tokenizer::{Token, TokenType};
 use crate::statements::Statement;
@@ -29,9 +30,13 @@ pub struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     pub fn new(collector: TokenCollector<'a>) -> Parser<'a> {
+        let mut sim_memory = Memory::new();
+
+        BuiltinFn::populate_sim_memory(&mut sim_memory);
+
         Parser {
             collector,
-            sim_memory: Memory::new()
+            sim_memory,
         }
     }
 

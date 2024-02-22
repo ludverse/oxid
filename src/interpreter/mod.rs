@@ -1,3 +1,4 @@
+use crate::builtin::BuiltinFn;
 use crate::memory::Memory;
 use crate::parser::Program;
 use crate::data::Data;
@@ -9,9 +10,13 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new(program: Program) -> Interpreter {
+        let mut memory = Memory::new();
+
+        BuiltinFn::populate_memory(&mut memory);
+
         Interpreter {
             program,
-            memory: Memory::new()
+            memory,
         }
     }
 

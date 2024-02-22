@@ -1,4 +1,4 @@
-use crate::builtin::BuiltinFunc;
+use crate::builtin::BuiltinFn;
 use crate::data::Data;
 use crate::errors::{ParseErrKind, ParseErr};
 use crate::expressions::{Expr, Evaluable};
@@ -27,19 +27,20 @@ impl Evaluable for ExprCall {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
         let mangled_path = self.path.mangle_path()?;
 
+        let fn_type = self.path.typ(parser)?;
         let args: Vec<_> = self.args.iter()
             .map(|arg_expr| arg_expr.typ(parser).unwrap()) // IDK how to not unwrap this and error
                                                            // handle this
             .collect();
 
-        if let Some(builtin) = BuiltinFunc::from_name(&mangled_path) {
-            return Ok(builtin.type_check(args)?)
-        }
-
-        if let Type::Fn { args_types, return_type } = self.path.typ(parser)? {
+        if let Type::Fn { args_types, return_type } = fn_type {
             // TODO: check for that args types and args have same type
 
             return Ok(*return_type)
+        }
+
+        if let Type::BuiltinFn(builtin) = fn_type {
+            return builtin.type_check(args);
         }
 
         unreachable!();
@@ -48,15 +49,12 @@ impl Evaluable for ExprCall {
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
         let mangled_path = self.path.mangle_path().unwrap();
 
+        let fn_data = self.path.eval(interpreter);
         let args: Vec<_> = self.args.iter()
             .map(|arg_expr| arg_expr.eval(interpreter))
             .collect();
 
-        if let Some(builtin) = BuiltinFunc::from_name(&mangled_path) {
-            return builtin.eval(args);
-        }
-
-        if let Data::Fn(fn_decl) = self.path.eval(interpreter) {
+        if let Data::Fn(fn_decl) = fn_data {
             interpreter.memory.push_scope();
 
             for (i, arg_data) in args.iter().enumerate() {
@@ -70,6 +68,37 @@ impl Evaluable for ExprCall {
             return res;
         }
 
-        panic!("should have already been caught by the parser")
+        if let Data::BuiltinFn(builtin_fn) = fn_data {
+            return builtin_fn.eval(args);
+        }
+
+        unreachable!();
     }
+}
+
+pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr) -> Result<Expr, ParseErr> {
+    let mut args = vec![];
+
+    destructive_loop!({
+        let next_token = parser.collector.next();
+        match &next_token.token {
+            TokenType::RightParen => break,
+            _ => ()
+        }
+
+        // TODO: prob explain to the user that it expects a rightparent too but current error
+        // handler doesn't support that so ill fix it in post
+        let arg_expr = Expr::parse_expr(parser, next_token)?;
+
+        args.push(Box::new(arg_expr));
+
+        let next_token = parser.collector.next();
+        match &next_token.token {
+            TokenType::Comma => continue,
+            TokenType::RightParen => break,
+            _ => return Err(parser.unexpected_token(next_token, "Comma or RightParen"))
+        }
+    });
+
+    Ok(Expr::Call(ExprCall::new(Box::new(expr), args)))
 }

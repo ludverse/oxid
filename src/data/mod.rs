@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use crate::builtin::BuiltinFn;
 use crate::errors::{ParseErr, ParseErrKind};
 use crate::interpreter::Interpreter;
 use crate::operations::Operation;
@@ -13,16 +14,18 @@ pub enum Data {
     Number(f64),
     Bool(bool),
     Fn(FunctionDeclaration),
+    BuiltinFn(BuiltinFn),
     TempNil // just a temporary null value in the meantime as we dont have empty tuples yet
 }
 
 impl Data {
     pub fn get_type(&self) -> Type {
-        match &self {
+        match self {
             Data::String(val) => Type::String,
             Data::Number(val) => Type::Number,
             Data::Bool(val) => Type::Bool,
             Data::Fn(val) => Type::Fn { args_types: val.args.clone(), return_type: val.return_type.clone() },
+            Data::BuiltinFn(builtin_fn) => Type::BuiltinFn(builtin_fn.clone()),
             Data::TempNil => Type::TempNil
         }
     }
