@@ -1,4 +1,4 @@
-use crate::builtin::BuiltinFn;
+
 use crate::data::Data;
 use crate::errors::{ParseErrKind, ParseErr};
 use crate::expressions::{Expr, Evaluable};
@@ -25,7 +25,7 @@ impl ExprCall {
 
 impl Evaluable for ExprCall {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let mangled_path = self.path.mangle_path()?;
+        let _mangled_path = self.path.mangle_path()?;
 
         let fn_type = self.path.typ(parser)?;
         let args: Vec<_> = self.args.iter()
@@ -33,7 +33,7 @@ impl Evaluable for ExprCall {
                                                            // handle this
             .collect();
 
-        if let Type::Fn { args_types, return_type } = fn_type {
+        if let Type::Fn { args_types: _, return_type } = fn_type {
             // TODO: check for that args types and args have same type
 
             return Ok(*return_type)
@@ -47,7 +47,7 @@ impl Evaluable for ExprCall {
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
-        let mangled_path = self.path.mangle_path().unwrap();
+        let _mangled_path = self.path.mangle_path().unwrap();
 
         let fn_data = self.path.eval(interpreter);
         let args: Vec<_> = self.args.iter()
@@ -76,7 +76,7 @@ impl Evaluable for ExprCall {
     }
 }
 
-pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr) -> Result<Expr, ParseErr> {
+pub fn parse(parser: &mut Parser, _first_token: &Token, expr: Expr) -> Result<Expr, ParseErr> {
     let mut args = vec![];
 
     destructive_loop!({

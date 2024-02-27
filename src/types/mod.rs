@@ -19,7 +19,7 @@ impl Type {
             Self::String => Some(String::from("String")),
             Self::Number => Some(String::from("Number")),
             Self::Bool => Some(String::from("Bool")),
-            Self::Fn { args_types: args, return_type } => Some(String::from("Fn")),
+            Self::Fn { args_types: _args, return_type: _ } => Some(String::from("Fn")),
             _ => None
         }
     }

@@ -2,8 +2,8 @@ use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
 use crate::expressions::{Expr, Evaluable, ExprBlock};
-use crate::data::{Data, ExprLiteral};
-use crate::statements::Statement;
+use crate::data::{Data};
+
 use crate::tokenizer::{Token, TokenType};
 use crate::types::Type;
 
@@ -27,7 +27,7 @@ impl ExprFor {
 }
 
 impl Evaluable for ExprFor {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
         Ok(Type::TempNil)
     }
 

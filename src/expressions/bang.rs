@@ -17,11 +17,11 @@ pub struct ExprUnary {
 }
 
 impl Evaluable for ExprUnary {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
         unimplemented!()
     }
 
-    fn eval(&self, interpreter: &mut Interpreter) -> Data {
+    fn eval(&self, _interpreter: &mut Interpreter) -> Data {
         unimplemented!();
     }
 }

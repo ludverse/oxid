@@ -2,9 +2,9 @@ use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
 use crate::expressions::{Expr, Evaluable, ExprBlock};
-use crate::data::{Data, ExprLiteral};
-use crate::statements::Statement;
-use crate::tokenizer::Token;
+use crate::data::{Data};
+
+
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -23,7 +23,7 @@ impl ExprIf {
 }
 
 impl Evaluable for ExprIf {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
         // self.body.get_type(parser)
         //
         // when we implement else clauses we can start returning values

@@ -1,4 +1,4 @@
-use crate::errors::{ParseErrKind, ParseErr};
+use crate::errors::{ParseErrKind};
 use crate::expressions::{Evaluable, Expr};
 use crate::data::Data;
 use crate::interpreter::Interpreter;

@@ -1,9 +1,9 @@
 use crate::data::Data;
 use crate::errors::ParseErrKind;
-use crate::interpreter::Interpreter;
+
 use crate::types::Type;
 
-pub fn type_check(args: Vec<Type>) -> Result<Type, ParseErrKind> {
+pub fn type_check(_args: Vec<Type>) -> Result<Type, ParseErrKind> {
     Ok(Type::TempNil)
 }
 

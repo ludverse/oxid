@@ -1,4 +1,4 @@
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{Token};
 
 pub struct TokenCollector<'a> {
     pub tokens: &'a Vec<Token>,

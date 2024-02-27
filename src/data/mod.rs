@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use crate::builtin::BuiltinFn;
-use crate::errors::{ParseErr, ParseErrKind};
+use crate::errors::{ParseErrKind};
 use crate::interpreter::Interpreter;
 use crate::operations::Operation;
 use crate::parser::Parser;
@@ -21,9 +21,9 @@ pub enum Data {
 impl Data {
     pub fn get_type(&self) -> Type {
         match self {
-            Data::String(val) => Type::String,
-            Data::Number(val) => Type::Number,
-            Data::Bool(val) => Type::Bool,
+            Data::String(_val) => Type::String,
+            Data::Number(_val) => Type::Number,
+            Data::Bool(_val) => Type::Bool,
             Data::Fn(val) => Type::Fn { args_types: val.args.clone(), return_type: val.return_type.clone() },
             Data::BuiltinFn(builtin_fn) => Type::BuiltinFn(builtin_fn.clone()),
             Data::TempNil => Type::TempNil
@@ -45,11 +45,11 @@ impl ExprLiteral {
 }
 
 impl Evaluable for ExprLiteral {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
         Ok(self.data.get_type())
     }
 
-    fn eval(&self, interpreter: &mut Interpreter) -> Data {
+    fn eval(&self, _interpreter: &mut Interpreter) -> Data {
         self.data.clone()
     }
 }
