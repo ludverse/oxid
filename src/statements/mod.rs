@@ -4,7 +4,7 @@ use crate::errors::ParseErr;
 use crate::expressions::Expr;
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{token::Token, token_type::TokenType};
 
 use r#let::VariableAssignment;
 use r#fn::FunctionDeclaration;

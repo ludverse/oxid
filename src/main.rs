@@ -16,7 +16,7 @@ fn main() -> ExitCode {
         .expect("failed to read source file");
     let buf = buf.trim();
 
-    let tokens = tokenize(buf);
+    let tokens = tokenize(&String::from("main"), buf);
     let collector = TokenCollector::new(&tokens);
 
     let mut parser = Parser::new(collector);

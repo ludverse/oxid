@@ -1,11 +1,10 @@
-
 use crate::data::Data;
 use crate::errors::{ParseErrKind, ParseErr};
 use crate::expressions::{Expr, Evaluable};
 use crate::helpers::destructive_loop;
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{token::Token, token_type::TokenType};
 use crate::types::Type;
 
 #[derive(Debug, Clone)]

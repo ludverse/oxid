@@ -3,7 +3,7 @@ use crate::errors::ParseErr;
 use crate::expressions::block::ExprBlock;
 use crate::helpers::destructive_loop;
 use crate::interpreter::Interpreter;
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{token::Token, token_type::TokenType};
 use crate::parser::Parser;
 use crate::statements::{Executable, ParseableStatement, Statement};
 use crate::types::Type;

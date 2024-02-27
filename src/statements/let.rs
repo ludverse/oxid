@@ -1,6 +1,6 @@
-use crate::errors::ParseErr;
+use crate::errors::{map_err_token, ParseErr};
 use crate::interpreter::Interpreter;
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{token::Token, token_type::TokenType};
 use crate::parser::Parser;
 use crate::expressions::Expr;
 use crate::statements::{Executable, ParseableStatement, Statement};
@@ -48,8 +48,7 @@ impl ParseableStatement for VariableAssignment {
 
                         let expr_token = parser.collector.next();
                         let expr = Expr::parse_expr(parser, expr_token)?;
-                        let expr_type = expr.typ(parser)
-                            .map_err(|err_kind| err_kind.to_err(expr_token.pos))?;
+                        let expr_type = map_err_token(expr.typ(parser), expr_token)?;
 
                         parser.sim_memory.insert(name.to_string(), expr_type);
 

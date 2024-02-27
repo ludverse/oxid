@@ -4,7 +4,7 @@ use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind, map_err_token};
 use crate::statements::{Executable, ParseableStatement, Statement};
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{token::Token, token_type::TokenType};
 use crate::data::{Data, ExprLiteral, ExprBinary};
 use crate::types::Type;
 use crate::helpers::destructive_loop;

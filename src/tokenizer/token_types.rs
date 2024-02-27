@@ -4,15 +4,20 @@ use crate::operations::Operation;
 use crate::expressions::assign::AssignOp;
 
 #[derive(Debug, Clone)]
+pub struct TokenPos {
+
+}
+
+#[derive(Debug, Clone)]
 pub struct Token {
-    pub pos: usize,
+    pub token_pos: TokenPos,
     pub token: TokenType
 }
 
 impl Token {
     pub fn new(pos: usize, token: TokenType) -> Self {
         Self {
-            pos,
+            token_pos: pos,
             token
         }
     }

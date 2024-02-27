@@ -1,8 +1,6 @@
-
-
 use crate::builtin::BuiltinFn;
 use crate::memory::Memory;
-use crate::tokenizer::{Token, TokenType};
+use crate::tokenizer::{token::Token, token_type::TokenType};
 use crate::statements::Statement;
 use crate::errors::{ParseErrKind, ParseErr};
 use crate::types::Type;
@@ -41,7 +39,8 @@ impl<'a> Parser<'a> {
     }
 
     pub fn unexpected_token(&self, token: &Token, expected: &str) -> ParseErr {
-        ParseErrKind::UnexpectedToken(format!("{:?}", token.token), expected.to_string()).to_err(token.pos)
+        ParseErrKind::UnexpectedToken(format!("{:?}", token.token), expected.to_string())
+            .from_token(token)
     }
 
     pub fn generate_program(&mut self) -> Program {

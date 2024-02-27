@@ -2,7 +2,7 @@ use crate::interpreter::Interpreter;
 use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind};
 use crate::expressions::{Expr, Evaluable, ExprBlock};
-use crate::data::{Data};
+use crate::data::Data;
 
 
 use crate::types::Type;

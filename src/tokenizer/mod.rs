@@ -1,32 +1,48 @@
-pub use token_types::*;
+use token::{Token, TokenPos};
+use token_type::TokenType;
 
-mod token_types;
+mod next_token;
+pub mod token;
+pub mod token_type;
 
-pub fn tokenize(buf: &str) -> Vec<Token> {
+pub fn tokenize(filename: &String, buf: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
 
-    let buf_char_indicies: Vec<_> = buf.char_indices().collect();
+    let mut line_i = 0;
+    let mut col_i = 0;
 
-    let mut char_i = 0;
-    while char_i < buf.len() {
-        let (byte_i, c) = buf_char_indicies[char_i];
-        if c.is_whitespace() {
-            char_i += 1;
-            continue;
-        };
+    for line in buf.lines() {
+        col_i = 0;
 
-        let token = TokenType::get_next_type(byte_i, buf);
+        let line_chars: Vec<_> = line.char_indices().collect();
 
-        if let Some(token) = token {
-            char_i += token.1;
+        while col_i < line_chars.len() {
+            let (byte_i, c) = line_chars[col_i];
+            if c.is_whitespace() {
+                col_i += 1;
+                continue;
+            };
 
-            tokens.push(Token::new(byte_i, token.0));
-        } else {
-            break;
+            let token_data = Token::next_token(
+                TokenPos::new(line_i, col_i, filename.to_string()),
+                &line[byte_i..],
+            );
+
+            if let Some((char_len, token)) = token_data {
+                col_i += char_len;
+                tokens.push(token);
+            } else {
+                break;
+            }
         }
+
+        line_i += 1;
     }
 
-    tokens.push(Token::new(buf.len(), TokenType::EOF));
+    tokens.push(Token::new(
+        TokenPos::new(line_i, 0, filename.to_string()),
+        TokenType::EOF
+    ));
     tokens
 }
 

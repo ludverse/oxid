@@ -1,13 +1,19 @@
-use crate::{operations::Operation, tokenizer::Token};
+use crate::operations::Operation;
+use crate::tokenizer::token::{Token, TokenPos};
 
 pub struct ParseErr {
-    err_kind: ParseErrKind,
-    pos: usize
+    pub err_kind: ParseErrKind,
+    pub token_pos: TokenPos
 }
 
 impl ParseErr {
     pub fn report(&self) -> ! {
-        panic!("[{:?}] error: {} (char: {})", self.err_kind, self.err_kind.err_msg(), self.pos)
+        panic!(
+            "[{:?}] error: {} ({})",
+            self.err_kind,
+            self.err_kind.err_msg(),
+            self.token_pos
+        )
     }
 }
 
@@ -22,10 +28,18 @@ pub enum ParseErrKind {
 }
 
 impl ParseErrKind {
-    pub fn to_err(self, pos: usize) -> ParseErr {
+    pub fn to_err(self, token_pos: TokenPos) -> ParseErr {
         let ok = ParseErr {
             err_kind: self,
-            pos
+            token_pos
+        };
+        ok.report();
+    }
+
+    pub fn from_token(self, token: &Token) -> ParseErr {
+        let ok = ParseErr {
+            err_kind: self,
+            token_pos: token.token_pos.clone()
         };
         ok.report()
     }
@@ -43,5 +57,5 @@ impl ParseErrKind {
 }
 
 pub fn map_err_token<T>(res: Result<T, ParseErrKind>, token: &Token) -> Result<T, ParseErr> {
-    res.map_err(|err_kind| err_kind.to_err(token.pos))
+    res.map_err(|err_kind| err_kind.from_token(token))
 }
