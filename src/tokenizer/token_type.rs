@@ -40,6 +40,7 @@ pub enum TokenType {
     Fn,
     Let,
     Mut,
+    Mod,
     For,
     In,
     If,

@@ -8,9 +8,11 @@ use crate::tokenizer::{token::Token, token_type::TokenType};
 
 use r#let::VariableAssignment;
 use r#fn::FunctionDeclaration;
+use module::ModuleImport;
 
 pub mod r#let;
 pub mod r#fn;
+pub mod module;
 
 pub trait Executable {
     fn exec(&self, interpreter: &mut Interpreter);
@@ -24,6 +26,7 @@ pub trait ParseableStatement {
 pub enum Statement {
     VariableAssignment(VariableAssignment),
     FunctionDeclaration(FunctionDeclaration),
+    ModuleImport(ModuleImport),
     Expr(Expr)
 }
 
@@ -32,6 +35,7 @@ impl Statement {
         match self {
             Statement::VariableAssignment(var_assign) => var_assign.exec(interpreter),
             Statement::FunctionDeclaration(func_decl) => func_decl.exec(interpreter),
+            Statement::ModuleImport(mod_import) => mod_import.exec(interpreter),
             Statement::Expr(expr) => expr.exec(interpreter)
         }
     }
@@ -40,6 +44,7 @@ impl Statement {
         let res = match first_token.token {
             TokenType::Let => VariableAssignment::parse(parser, first_token),
             TokenType::Fn => FunctionDeclaration::parse(parser, first_token),
+            TokenType::Mod => ModuleImport::parse(parser, first_token),
             _ => Expr::parse(parser, first_token)
         };
 

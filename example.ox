@@ -1,5 +1,3 @@
-fn hi() {
-    8 = 3;
-}
-print(hi());
+mod sstd;
 
+print("examp");

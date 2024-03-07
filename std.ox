@@ -1,6 +1,8 @@
 let LOOK_LEN = 9;
 let mut out = "";
 
+print("looool");
+
 fn to_string(x: Number) {
     out = "";
 

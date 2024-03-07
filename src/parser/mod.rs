@@ -8,7 +8,7 @@ pub use token_collectior::TokenCollector;
 
 mod token_collectior;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Program {
     pub body: Vec<Statement>
 }

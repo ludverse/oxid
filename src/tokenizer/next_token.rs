@@ -130,6 +130,7 @@ impl TokenType {
                         "fn" => Self::Fn,
                         "let" => Self::Let,
                         "mut" => Self::Mut,
+                        "mod" => Self::Mod,
                         "for" => Self::For,
                         "in" => Self::In,
                         "if" => Self::If,
