@@ -1,3 +1,3 @@
-mod sstd;
+mod lib;
 
 print("examp");

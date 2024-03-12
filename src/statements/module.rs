@@ -1,33 +1,31 @@
 use std::fs;
-use std::mem;
 
-use crate::errors::{map_err_token, ParseErr};
+use crate::errors::ParseErr;
 use crate::interpreter::Interpreter;
 use crate::tokenizer::tokenize;
 use crate::tokenizer::{token::Token, token_type::TokenType};
-use crate::parser::{Parser, TokenCollector, Program};
-use crate::expressions::Expr;
+use crate::parser::{Parser, TokenCollector};
 use crate::statements::{Executable, ParseableStatement, Statement};
 
 #[derive(Debug, Clone)]
 pub struct ModuleImport {
     pub name: String,
-    pub program: Program
+    pub statements: Vec<Statement>
 }
 
 impl ModuleImport {
-    fn new(name: String, program: Program) -> ModuleImport {
+    fn new(name: String, statements: Vec<Statement>) -> ModuleImport {
         ModuleImport {
             name,
-            program
+            statements
         }
     }
 }
 
 impl Executable for ModuleImport {
     fn exec(&self, interpreter: &mut Interpreter) {
-        let mut interpreter = Interpreter::new(self.program.clone());
-        interpreter.run();
+        let mut mod_interpreter = Interpreter::new(&self.statements, interpreter.memory);
+        mod_interpreter.run_program();
     }
 }
 
@@ -47,12 +45,12 @@ impl ParseableStatement for ModuleImport {
                 let tokens = tokenize(name, buf);
                 let collector = TokenCollector::new(&tokens);
 
-                let old_collector = mem::replace(&mut parser.collector, collector);
-                let program = parser.generate_program();
-                parser.collector = old_collector;
+                let mut buf_parser = Parser::new(collector, parser.sim_memory);
+
+                let statements = buf_parser.generate_program();
 
                 // TODO do error handling stuff for this
-                Ok(Statement::ModuleImport(ModuleImport::new(name.to_string(), program)))
+                Ok(Statement::ModuleImport(ModuleImport::new(name.to_string(), statements)))
             },
             _ => Err(parser.unexpected_token(next_token, "variable name"))
         }

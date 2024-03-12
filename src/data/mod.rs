@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use crate::builtin::BuiltinFn;
-use crate::errors::{ParseErrKind};
+use crate::errors::ParseErrKind;
 use crate::interpreter::Interpreter;
 use crate::operations::Operation;
 use crate::parser::Parser;

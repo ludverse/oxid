@@ -1,28 +1,22 @@
-use crate::builtin::BuiltinFn;
 use crate::memory::Memory;
-use crate::parser::Program;
 use crate::data::Data;
+use crate::statements::Statement;
 
-pub struct Interpreter {
-    pub program: Program,
-    pub memory: Memory<Data>
+pub struct Interpreter<'a, 'm> {
+    pub statements: &'a Vec<Statement>,
+    pub memory: &'m mut Memory<Data>
 }
 
-impl Interpreter {
-    pub fn new(program: Program) -> Interpreter {
-        let mut memory = Memory::new();
-
-        BuiltinFn::populate_memory(&mut memory);
-
-        Interpreter {
-            program,
+impl<'a, 'm> Interpreter<'a, 'm> {
+    pub fn new(statements: &'a Vec<Statement>, memory: &'m mut Memory<Data>) -> Self {
+        Self {
+            statements,
             memory,
         }
     }
 
-    pub fn run(&mut self) {
-        let statements = self.program.body.clone();
-        for statement in statements.iter() {
+    pub fn run_program(&mut self) {
+        for statement in self.statements.into_iter() {
             statement.exec(self);
         }
     }
