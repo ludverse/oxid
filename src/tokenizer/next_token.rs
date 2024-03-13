@@ -54,11 +54,11 @@ impl TokenType {
                 Some('=') => Self::BangEqual,
                 _ => decrease_len(Self::Bang),
             },
-            '<' => match next_char() {
+            '>' => match next_char() {
                 Some('=') => Self::GreaterEqual,
                 _ => decrease_len(Self::Greater),
             },
-            '>' => match next_char() {
+            '<' => match next_char() {
                 Some('=') => Self::LessEqual,
                 _ => decrease_len(Self::Less),
             },

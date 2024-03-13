@@ -61,19 +61,23 @@ impl TokenType {
             Self::String(val) => Some(Data::String(val.to_string())),
             Self::Number(val) => Some(Data::Number(*val)),
             Self::Bool(val) => Some(Data::Bool(*val)),
-            _ => None,
+            _ => None
         }
     }
 
     pub fn to_operation(&self) -> Option<Operation> {
         match self {
-            Self::Plus => Some(Operation::Add),
-            Self::Minus => Some(Operation::Sub),
             Self::Star => Some(Operation::Mul),
             Self::Slash => Some(Operation::Div),
             Self::Remainder => Some(Operation::Rem),
+            Self::Plus => Some(Operation::Add),
+            Self::Minus => Some(Operation::Sub),
             Self::EqualEqual => Some(Operation::Eq),
-            _ => None,
+            Self::Less => Some(Operation::Lt),
+            Self::LessEqual => Some(Operation::Lte),
+            Self::Greater => Some(Operation::Gt),
+            Self::GreaterEqual => Some(Operation::Gte),
+            _ => None
         }
     }
 
@@ -81,7 +85,7 @@ impl TokenType {
         match self {
             Self::Equal => Some(AssignOp::Eq),
             Self::PlusEqual => Some(AssignOp::AddEq),
-            _ => None,
+            _ => None
         }
     }
 }
