@@ -20,3 +20,21 @@ pub fn op(lhs: &Data, rhs: &Data) -> Option<Data> {
         _ => None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::types::Type;
+
+    use super::super::Operation;
+
+    #[test]
+    fn lte_numbers() {
+        let res_type = Operation::Lte.typ(&Type::Number, &Type::Number);
+        assert_eq!(res_type, Ok(Type::Bool));
+    }
+
+    #[test]
+    fn cannot_lte_different() {
+        assert!(Operation::Lte.typ(&Type::String, &Type::Number).is_err())
+    }
+}

@@ -20,3 +20,21 @@ pub fn op(lhs: &Data, rhs: &Data) -> Option<Data> {
         _ => None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::types::Type;
+
+    use super::super::Operation;
+
+    #[test]
+    fn sub_numbers() {
+        let res_type = Operation::Sub.typ(&Type::Number, &Type::Number);
+        assert_eq!(res_type, Ok(Type::Number));
+    }
+
+    #[test]
+    fn cannot_sub_different() {
+        assert!(Operation::Sub.typ(&Type::String, &Type::Number).is_err())
+    }
+}

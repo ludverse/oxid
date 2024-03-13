@@ -28,3 +28,27 @@ pub fn op(lhs: &Data, rhs: &Data) -> Option<Data> {
         _ => None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::types::Type;
+
+    use super::super::Operation;
+
+    #[test]
+    fn add_numbers() {
+        let res_type = Operation::Add.typ(&Type::Number, &Type::Number);
+        assert_eq!(res_type, Ok(Type::Number));
+    }
+
+    #[test]
+    fn add_strings() {
+        let res_type = Operation::Add.typ(&Type::String, &Type::String);
+        assert_eq!(res_type, Ok(Type::String));
+    }
+
+    #[test]
+    fn cannot_add_different() {
+        assert!(Operation::Add.typ(&Type::String, &Type::Number).is_err())
+    }
+}

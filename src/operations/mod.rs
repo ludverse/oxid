@@ -62,6 +62,3 @@ impl Operation {
         res.expect("invalid operation slipped through to the interpreter after a valid operation check")
     }
 }
-
-#[cfg(test)]
-mod tests;

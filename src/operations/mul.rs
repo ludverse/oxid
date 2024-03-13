@@ -20,3 +20,21 @@ pub fn op(lhs: &Data, rhs: &Data) -> Option<Data> {
         _ => None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::types::Type;
+
+    use super::super::Operation;
+
+    #[test]
+    fn mul_numbers() {
+        let res_type = Operation::Mul.typ(&Type::Number, &Type::Number);
+        assert_eq!(res_type, Ok(Type::Number));
+    }
+
+    #[test]
+    fn cannot_mul_different() {
+        assert!(Operation::Mul.typ(&Type::String, &Type::Number).is_err())
+    }
+}
