@@ -34,7 +34,9 @@ fn main() -> ExitCode {
     let mut memory = Memory::new();
     BuiltinFn::populate_memory(&mut memory);
 
-    execute_file("std.ox", &mut sim_memory, &mut memory);
+    let std_file = config.std_file
+        .unwrap_or(String::from("std.ox"));
+    execute_file(&std_file[..], &mut sim_memory, &mut memory);
     execute_file(&config.source_file[..], &mut sim_memory, &mut memory);
 
     0.into()
