@@ -24,7 +24,7 @@ impl ExprCall {
 
 impl Evaluable for ExprCall {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let _mangled_path = self.path.mangle_path()?;
+        let mangled_path = self.path.mangle_path()?;
 
         let fn_type = self.path.typ(parser)?;
         let args: Vec<_> = self.args.iter()
@@ -42,7 +42,7 @@ impl Evaluable for ExprCall {
             return builtin.type_check(args);
         }
 
-        unreachable!();
+        Err(ParseErrKind::NotCallable(mangled_path))
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
