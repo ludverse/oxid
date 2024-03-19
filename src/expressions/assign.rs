@@ -1,9 +1,10 @@
 use crate::data::Data;
-use crate::errors::ParseErrKind;
+use crate::errors::{ParseErrKind, ParseErr, map_err_token};
 use crate::expressions::{Expr, Evaluable};
 use crate::interpreter::Interpreter;
 use crate::operations::Operation;
 use crate::parser::Parser;
+use crate::tokenizer::token::Token;
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -31,16 +32,17 @@ impl ExprAssign {
 
 impl Evaluable for ExprAssign {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let mangled = self.lhs.mangle_path()?;
+        let mangled = self.lhs.mangle_path().unwrap();
 
-        let value = self.rhs.typ(parser)?;
-        let old = parser.sim_memory.get(&mangled)
-            .ok_or(ParseErrKind::UnknownField(mangled))?;
+        let value = self.rhs.typ(parser).unwrap();
+        let old = parser.sim_memory.get(&mangled).unwrap();
 
-        match self.op {
-            AssignOp::Eq => self.rhs.typ(parser),
-            AssignOp::AddEq => Operation::Add.typ(old, &value)
-        }
+        let res = match self.op {
+            AssignOp::Eq => self.rhs.typ(parser).unwrap(),
+            AssignOp::AddEq => Operation::Add.typ(old, &value).unwrap()
+        };
+
+        Ok(res)
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -58,4 +60,15 @@ impl Evaluable for ExprAssign {
 
         data
     }
+}
+
+pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr, assign_op: AssignOp) -> Result<Expr, ParseErr> {
+    map_err_token(expr.mangle_path(), first_token)?;
+
+    let rhs_token = parser.collector.next();
+    let rhs = Expr::parse_expr(parser, rhs_token)?;
+
+    let expr_assign = ExprAssign::new(assign_op, Box::new(expr), Box::new(rhs));
+
+    Ok(Expr::Assign(expr_assign))
 }

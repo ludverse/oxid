@@ -38,17 +38,17 @@ mod tests {
     #[test]
     fn eq_numbers() {
         let res_type = Operation::Eq.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Bool));
+        assert_eq!(res_type, Some(Type::Bool));
     }
 
     #[test]
     fn eq_strings() {
         let res_type = Operation::Eq.typ(&Type::String, &Type::String);
-        assert_eq!(res_type, Ok(Type::Bool));
+        assert_eq!(res_type, Some(Type::Bool));
     }
 
     #[test]
     fn cannot_eq_different() {
-        assert!(Operation::Eq.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Eq.typ(&Type::String, &Type::Number).is_none())
     }
 }

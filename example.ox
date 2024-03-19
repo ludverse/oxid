@@ -1,3 +1,1 @@
-let b = 20;
-
-b();
+print(to_string(43));

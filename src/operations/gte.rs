@@ -30,11 +30,11 @@ mod tests {
     #[test]
     fn gte_numbers() {
         let res_type = Operation::Gte.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Bool));
+        assert_eq!(res_type, Some(Type::Bool));
     }
 
     #[test]
     fn cannot_gte_different() {
-        assert!(Operation::Gte.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Gte.typ(&Type::String, &Type::Number).is_none())
     }
 }

@@ -30,11 +30,11 @@ mod tests {
     #[test]
     fn rem_numbers() {
         let res_type = Operation::Rem.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Number));
+        assert_eq!(res_type, Some(Type::Number));
     }
 
     #[test]
     fn cannot_rem_different() {
-        assert!(Operation::Rem.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Rem.typ(&Type::String, &Type::Number).is_none())
     }
 }

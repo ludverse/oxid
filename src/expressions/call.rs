@@ -24,12 +24,11 @@ impl ExprCall {
 
 impl Evaluable for ExprCall {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let mangled_path = self.path.mangle_path()?;
+        let _mangled_path = self.path.mangle_path().unwrap();
 
-        let fn_type = self.path.typ(parser)?;
+        let fn_type = self.path.typ(parser).unwrap();
         let args: Vec<_> = self.args.iter()
-            .map(|arg_expr| arg_expr.typ(parser).unwrap()) // IDK how to not unwrap this and error
-                                                           // handle this
+            .map(|arg_expr| arg_expr.typ(parser).unwrap())
             .collect();
 
         if let Type::Fn { args_types: _, return_type } = fn_type {
@@ -42,7 +41,7 @@ impl Evaluable for ExprCall {
             return builtin.type_check(args);
         }
 
-        Err(ParseErrKind::NotCallable(mangled_path))
+        unreachable!("should have already been caught in parsing");
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -98,6 +97,14 @@ pub fn parse(parser: &mut Parser, _first_token: &Token, expr: Expr) -> Result<Ex
             _ => return Err(parser.unexpected_token(next_token, "Comma or RightParen"))
         }
     });
+
+    let expr_type = expr.typ(parser).unwrap();
+
+    match expr_type {
+        Type::Fn { args_types: _, return_type: _ } => (),
+        Type::BuiltinFn(_) => (),
+        _ => return Err(ParseErrKind::NotCallable().from_token(_first_token))
+    }
 
     Ok(Expr::Call(ExprCall::new(Box::new(expr), args)))
 }

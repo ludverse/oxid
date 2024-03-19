@@ -1,11 +1,11 @@
-
 use crate::interpreter::Interpreter;
 use crate::parser::Parser;
-use crate::errors::ParseErrKind;
+use crate::errors::{ParseErrKind, ParseErr};
 use crate::expressions::{Expr, Evaluable};
 use crate::data::Data;
 
-
+use crate::tokenizer::token::Token;
+use crate::tokenizer::token_type::TokenType;
 use crate::types::Type;
 
 #[derive(Debug, Clone)]
@@ -25,10 +25,8 @@ impl ExprField {
 
 impl Evaluable for ExprField {
     fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let mangled = self.mangle_path()?;
-        parser.sim_memory.get(&mangled)
-            .ok_or(ParseErrKind::UnknownField(mangled))
-            .cloned()
+        let mangled = self.mangle_path().unwrap();
+        Ok(parser.sim_memory.get(&mangled).unwrap().clone())
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -43,4 +41,17 @@ impl Evaluable for ExprField {
             Ok(self.field_name.to_string())
         }
     }
+}
+
+pub fn parse(parser: &mut Parser, first_token: &Token, expr: Option<Expr>, field_name: &String) -> Result<Expr, ParseErr> {
+    let child = expr.and_then(|expr| Some(Box::new(expr)));
+    let expr_field = ExprField::new(field_name.to_string(), child);
+
+    let mangled = expr_field.mangle_path().unwrap();
+
+    if !parser.sim_memory.has(&mangled) {
+        return Err(ParseErrKind::UnknownField().from_token(first_token));
+    }
+
+    Ok(Expr::Field(expr_field))
 }

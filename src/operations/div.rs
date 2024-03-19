@@ -30,11 +30,11 @@ mod tests {
     #[test]
     fn div_numbers() {
         let res_type = Operation::Div.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Number));
+        assert_eq!(res_type, Some(Type::Number));
     }
 
     #[test]
     fn cannot_div_different() {
-        assert!(Operation::Div.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Div.typ(&Type::String, &Type::Number).is_none())
     }
 }

@@ -30,11 +30,11 @@ mod tests {
     #[test]
     fn mul_numbers() {
         let res_type = Operation::Mul.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Number));
+        assert_eq!(res_type, Some(Type::Number));
     }
 
     #[test]
     fn cannot_mul_different() {
-        assert!(Operation::Mul.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Mul.typ(&Type::String, &Type::Number).is_none())
     }
 }
