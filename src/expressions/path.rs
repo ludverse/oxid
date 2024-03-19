@@ -24,7 +24,7 @@ impl ExprField {
 }
 
 impl Evaluable for ExprField {
-    fn typ(&self, parser: &Parser) -> Type {
+    fn type_check(&self, parser: &Parser) -> Type {
         let mangled = self.mangle_path().unwrap();
         parser.sim_memory.get(&mangled).unwrap().clone()
     }

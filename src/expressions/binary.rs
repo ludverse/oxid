@@ -26,9 +26,9 @@ impl ExprBinary {
 }
 
 impl Evaluable for ExprBinary {
-    fn typ(&self, parser: &Parser) -> Type {
-        let lhs = self.lhs.typ(parser);
-        let rhs = self.rhs.typ(parser);
+    fn type_check(&self, parser: &Parser) -> Type {
+        let lhs = self.lhs.type_check(parser);
+        let rhs = self.rhs.type_check(parser);
 
         self.operation.typ(&lhs, &rhs).unwrap()
     }
@@ -42,11 +42,11 @@ impl Evaluable for ExprBinary {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr, operation: Operation) -> Result<Expr, ParseErr> {
-    let expr_type = expr.typ(parser);
+    let expr_type = expr.type_check(parser);
 
     let rhs_token = parser.collector.next();
     let rhs = Expr::parse_expr_side(parser, rhs_token)?;
-    let rhs_type = rhs.typ(parser);
+    let rhs_type = rhs.type_check(parser);
 
     operation.typ(&expr_type, &rhs_type)
         .ok_or_else(|| 

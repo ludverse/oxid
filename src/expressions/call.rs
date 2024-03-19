@@ -23,12 +23,12 @@ impl ExprCall {
 }
 
 impl Evaluable for ExprCall {
-    fn typ(&self, parser: &Parser) -> Type {
+    fn type_check(&self, parser: &Parser) -> Type {
         let _mangled_path = self.path.mangle_path().unwrap();
 
-        let fn_type = self.path.typ(parser);
+        let fn_type = self.path.type_check(parser);
         let args: Vec<_> = self.args.iter()
-            .map(|arg_expr| arg_expr.typ(parser))
+            .map(|arg_expr| arg_expr.type_check(parser))
             .collect();
 
         if let Type::Fn { args_types: _, return_type } = fn_type {
@@ -98,7 +98,7 @@ pub fn parse(parser: &mut Parser, _first_token: &Token, expr: Expr) -> Result<Ex
         }
     });
 
-    let expr_type = expr.typ(parser);
+    let expr_type = expr.type_check(parser);
 
     match expr_type {
         Type::Fn { args_types: _, return_type: _ } => (),

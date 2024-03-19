@@ -21,8 +21,8 @@ impl ExprIndex {
 }
 
 impl Evaluable for ExprIndex {
-    fn typ(&self, parser: &Parser) -> Type {
-        self.value.typ(parser)
+    fn type_check(&self, parser: &Parser) -> Type {
+        self.value.type_check(parser)
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {

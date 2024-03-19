@@ -30,7 +30,7 @@ pub mod r#for;
 pub mod r#if;
 
 pub trait Evaluable: Debug {
-    fn typ(&self, parser: &Parser) -> Type;
+    fn type_check(&self, parser: &Parser) -> Type;
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
 
@@ -54,18 +54,18 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn typ(&self, parser: &Parser) -> Type {
+    pub fn type_check(&self, parser: &Parser) -> Type {
         match self {
-            Expr::Literal(literal_expr) => literal_expr.typ(parser),
-            Expr::Binary(binary_expr) => binary_expr.typ(parser),
-            Expr::Index(index_expr) => index_expr.typ(parser),
+            Expr::Literal(literal_expr) => literal_expr.type_check(parser),
+            Expr::Binary(binary_expr) => binary_expr.type_check(parser),
+            Expr::Index(index_expr) => index_expr.type_check(parser),
             Expr::Unary(_) => unimplemented!(),
-            Expr::Field(field_expr) => field_expr.typ(parser),
-            Expr::Call(call_expr) => call_expr.typ(parser),
-            Expr::Assign(assign_expr) => assign_expr.typ(parser),
-            Expr::Block(block_expr) => block_expr.typ(parser),
-            Expr::For(for_expr) => for_expr.typ(parser),
-            Expr::If(if_expr) => if_expr.typ(parser)
+            Expr::Field(field_expr) => field_expr.type_check(parser),
+            Expr::Call(call_expr) => call_expr.type_check(parser),
+            Expr::Assign(assign_expr) => assign_expr.type_check(parser),
+            Expr::Block(block_expr) => block_expr.type_check(parser),
+            Expr::For(for_expr) => for_expr.type_check(parser),
+            Expr::If(if_expr) => if_expr.type_check(parser)
         }
     }
 

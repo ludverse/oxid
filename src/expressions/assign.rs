@@ -31,14 +31,14 @@ impl ExprAssign {
 }
 
 impl Evaluable for ExprAssign {
-    fn typ(&self, parser: &Parser) -> Type {
+    fn type_check(&self, parser: &Parser) -> Type {
         let mangled = self.lhs.mangle_path().unwrap();
 
-        let value = self.rhs.typ(parser);
+        let value = self.rhs.type_check(parser);
         let old = parser.sim_memory.get(&mangled).unwrap();
 
         match self.op {
-            AssignOp::Eq => self.rhs.typ(parser),
+            AssignOp::Eq => self.rhs.type_check(parser),
             AssignOp::AddEq => Operation::Add.typ(old, &value).unwrap()
         }
     }
@@ -61,11 +61,11 @@ impl Evaluable for ExprAssign {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr, assign_op: AssignOp) -> Result<Expr, ParseErr> {
-    let expr_type = expr.typ(parser);
+    let expr_type = expr.type_check(parser);
 
     let rhs_token = parser.collector.next();
     let rhs = Expr::parse_expr(parser, rhs_token)?;
-    let rhs_type = rhs.typ(parser);
+    let rhs_type = rhs.type_check(parser);
 
     let op_is_valid = match assign_op {
         AssignOp::AddEq => Operation::Add.typ(&expr_type, &rhs_type).is_some(),
