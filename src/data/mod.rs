@@ -45,8 +45,8 @@ impl ExprLiteral {
 }
 
 impl Evaluable for ExprLiteral {
-    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
-        Ok(self.data.get_type())
+    fn typ(&self, _parser: &Parser) -> Type {
+        self.data.get_type()
     }
 
     fn eval(&self, _interpreter: &mut Interpreter) -> Data {

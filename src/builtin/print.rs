@@ -3,8 +3,8 @@ use crate::errors::ParseErrKind;
 
 use crate::types::Type;
 
-pub fn type_check(_args: Vec<Type>) -> Result<Type, ParseErrKind> {
-    Ok(Type::TempNil)
+pub fn type_check(_args: Vec<Type>) -> Type {
+    Type::TempNil
 }
 
 pub fn eval(args: Vec<Data>) -> Data {

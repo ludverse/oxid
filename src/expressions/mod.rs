@@ -30,7 +30,7 @@ pub mod r#for;
 pub mod r#if;
 
 pub trait Evaluable: Debug {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
+    fn typ(&self, parser: &Parser) -> Type;
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
 
@@ -54,7 +54,7 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    pub fn typ(&self, parser: &Parser) -> Type {
         match self {
             Expr::Literal(literal_expr) => literal_expr.typ(parser),
             Expr::Binary(binary_expr) => binary_expr.typ(parser),

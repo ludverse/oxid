@@ -23,12 +23,12 @@ impl ExprIf {
 }
 
 impl Evaluable for ExprIf {
-    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, _parser: &Parser) -> Type {
         // self.body.get_type(parser)
         //
         // when we implement else clauses we can start returning values
 
-        Ok(Type::TempNil)
+        Type::TempNil
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {

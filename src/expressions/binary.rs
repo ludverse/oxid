@@ -26,11 +26,11 @@ impl ExprBinary {
 }
 
 impl Evaluable for ExprBinary {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let lhs = self.lhs.typ(parser).unwrap();
-        let rhs = self.rhs.typ(parser).unwrap();
+    fn typ(&self, parser: &Parser) -> Type {
+        let lhs = self.lhs.typ(parser);
+        let rhs = self.rhs.typ(parser);
 
-        Ok(self.operation.typ(&lhs, &rhs).unwrap())
+        self.operation.typ(&lhs, &rhs).unwrap()
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -42,14 +42,13 @@ impl Evaluable for ExprBinary {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr, operation: Operation) -> Result<Expr, ParseErr> {
-    let expr_type = expr.typ(parser).unwrap();
+    let expr_type = expr.typ(parser);
 
     let rhs_token = parser.collector.next();
     let rhs = Expr::parse_expr_side(parser, rhs_token)?;
+    let rhs_type = rhs.typ(parser);
 
-    let rhs_type = map_err_token(rhs.typ(parser), rhs_token)?;
-
-    let op_res = operation.typ(&expr_type, &rhs_type)
+    operation.typ(&expr_type, &rhs_type)
         .ok_or_else(|| 
             ParseErrKind::IncompatiableOperation(operation, expr_type.get_name().unwrap(), rhs_type.get_name().unwrap())
                 .from_token(first_token)

@@ -1,1 +1,3 @@
-print(to_string(43));
+let b = 2;
+
+b += "HI";

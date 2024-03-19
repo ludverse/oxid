@@ -31,18 +31,16 @@ impl ExprAssign {
 }
 
 impl Evaluable for ExprAssign {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn typ(&self, parser: &Parser) -> Type {
         let mangled = self.lhs.mangle_path().unwrap();
 
-        let value = self.rhs.typ(parser).unwrap();
+        let value = self.rhs.typ(parser);
         let old = parser.sim_memory.get(&mangled).unwrap();
 
-        let res = match self.op {
-            AssignOp::Eq => self.rhs.typ(parser).unwrap(),
+        match self.op {
+            AssignOp::Eq => self.rhs.typ(parser),
             AssignOp::AddEq => Operation::Add.typ(old, &value).unwrap()
-        };
-
-        Ok(res)
+        }
     }
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data {
@@ -63,10 +61,27 @@ impl Evaluable for ExprAssign {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr, assign_op: AssignOp) -> Result<Expr, ParseErr> {
-    map_err_token(expr.mangle_path(), first_token)?;
+    let expr_type = expr.typ(parser);
 
     let rhs_token = parser.collector.next();
     let rhs = Expr::parse_expr(parser, rhs_token)?;
+    let rhs_type = rhs.typ(parser);
+
+    let op_is_valid = match assign_op {
+        AssignOp::AddEq => Operation::Add.typ(&expr_type, &rhs_type).is_some(),
+        _ => true // TODO add proper assign op operations like Operation but for now just do this
+    };
+
+    if !op_is_valid {
+        return Err(
+            ParseErrKind::IncompatiableOperation(
+                Operation::Add,
+                expr_type.get_name().unwrap(),
+                rhs_type.get_name().unwrap()
+            )
+            .from_token(first_token)
+        )
+    }
 
     let expr_assign = ExprAssign::new(assign_op, Box::new(expr), Box::new(rhs));
 

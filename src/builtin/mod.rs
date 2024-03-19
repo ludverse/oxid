@@ -27,7 +27,7 @@ impl BuiltinFn {
         }
     }
 
-    pub fn type_check(&self, args: Vec<Type>) -> Result<Type, ParseErrKind>{
+    pub fn type_check(&self, args: Vec<Type>) -> Type {
         match self {
             BuiltinFn::Print => print::type_check(args)
         }
