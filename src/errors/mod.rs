@@ -9,8 +9,7 @@ pub struct ParseErr {
 impl ParseErr {
     pub fn report(&self) -> ! {
         panic!(
-            "[{:?}] error: {} ({})",
-            self.err_kind,
+            "error: {} ({})",
             self.err_kind.err_msg(),
             self.token_pos
         )
