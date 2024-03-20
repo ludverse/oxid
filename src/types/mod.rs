@@ -20,7 +20,8 @@ impl Type {
             Self::Number => Some(String::from("Number")),
             Self::Bool => Some(String::from("Bool")),
             Self::Fn { args_types: _args, return_type: _ } => Some(String::from("Fn")),
-            _ => None
+            Self::BuiltinFn(_) => Some(String::from("Builtin")),
+            Self::TempNil => Some(String::from("temporary nil val"))
         }
     }
 

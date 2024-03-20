@@ -45,45 +45,12 @@ impl ExprLiteral {
 }
 
 impl Evaluable for ExprLiteral {
-    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
-        Ok(self.data.get_type())
+    fn type_check(&self, _parser: &Parser) -> Type {
+        self.data.get_type()
     }
 
     fn eval(&self, _interpreter: &mut Interpreter) -> Data {
         self.data.clone()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ExprBinary {
-    operation: Operation,
-    lhs: Box<Expr>,
-    rhs: Box<Expr>
-}
-
-impl ExprBinary {
-    pub fn new(operation: Operation, lhs: Box<Expr>, rhs: Box<Expr>) -> ExprBinary {
-        ExprBinary {
-            operation,
-            lhs,
-            rhs
-        }
-    }
-}
-
-impl Evaluable for ExprBinary {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
-        let lhs = self.lhs.typ(parser)?;
-        let rhs = self.rhs.typ(parser)?;
-
-        self.operation.typ(&lhs, &rhs)
-    }
-
-    fn eval(&self, interpreter: &mut Interpreter) -> Data {
-        let lhs = self.lhs.eval(interpreter);
-        let rhs = self.rhs.eval(interpreter);
-
-        self.operation.op(&lhs, &rhs)
     }
 }
 

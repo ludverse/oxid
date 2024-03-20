@@ -30,11 +30,11 @@ mod tests {
     #[test]
     fn lte_numbers() {
         let res_type = Operation::Lte.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Bool));
+        assert_eq!(res_type, Some(Type::Bool));
     }
 
     #[test]
     fn cannot_lte_different() {
-        assert!(Operation::Lte.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Lte.typ(&Type::String, &Type::Number).is_none())
     }
 }

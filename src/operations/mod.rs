@@ -28,8 +28,8 @@ pub enum Operation {
 }
 
 impl Operation {
-    pub fn typ(&self, lhs: &Type, rhs: &Type) -> Result<Type, ParseErrKind> {
-        let res = match self {
+    pub fn typ(&self, lhs: &Type, rhs: &Type) -> Option<Type> {
+        match self {
             Operation::Add => add::typ(lhs, rhs),
             Operation::Sub => sub::typ(lhs, rhs),
             Operation::Mul => mul::typ(lhs, rhs),
@@ -40,9 +40,7 @@ impl Operation {
             Operation::Gte => gte::typ(lhs, rhs),
             Operation::Lt => lt::typ(lhs, rhs),
             Operation::Lte => lte::typ(lhs, rhs)
-        };
-
-        res.ok_or(ParseErrKind::InvalidOperation(*self, format!("{:?}", lhs), format!("{:?}", rhs)))
+        }
     }
 
     pub fn op(&self, lhs: &Data, rhs: &Data) -> Data {

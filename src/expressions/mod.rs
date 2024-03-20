@@ -5,10 +5,11 @@ use crate::parser::Parser;
 use crate::errors::{ParseErr, ParseErrKind, map_err_token};
 use crate::statements::{Executable, ParseableStatement, Statement};
 use crate::tokenizer::{token::Token, token_type::TokenType};
-use crate::data::{Data, ExprLiteral, ExprBinary};
+use crate::data::{Data, ExprLiteral};
 use crate::types::Type;
 use crate::helpers::destructive_loop;
 
+use binary::ExprBinary;
 use index::ExprIndex;
 use bang::ExprUnary;
 use path::ExprField;
@@ -18,6 +19,7 @@ use block::ExprBlock;
 use r#for::ExprFor;
 use r#if::ExprIf;
 
+pub mod binary;
 pub mod index;
 pub mod bang;
 pub mod path;
@@ -28,12 +30,12 @@ pub mod r#for;
 pub mod r#if;
 
 pub trait Evaluable: Debug {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind>;
+    fn type_check(&self, parser: &Parser) -> Type;
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
 
-    fn mangle_path(&self) -> Result<String, ParseErrKind> {
-        Err(ParseErrKind::InvalidPathUse(format!("{:?}", self)))
+    fn mangle_path(&self) -> Option<String> {
+        None
     }
 }
 
@@ -52,18 +54,18 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    pub fn type_check(&self, parser: &Parser) -> Type {
         match self {
-            Expr::Literal(literal_expr) => literal_expr.typ(parser),
-            Expr::Binary(binary_expr) => binary_expr.typ(parser),
-            Expr::Index(index_expr) => index_expr.typ(parser),
+            Expr::Literal(literal_expr) => literal_expr.type_check(parser),
+            Expr::Binary(binary_expr) => binary_expr.type_check(parser),
+            Expr::Index(index_expr) => index_expr.type_check(parser),
             Expr::Unary(_) => unimplemented!(),
-            Expr::Field(field_expr) => field_expr.typ(parser),
-            Expr::Call(call_expr) => call_expr.typ(parser),
-            Expr::Assign(assign_expr) => assign_expr.typ(parser),
-            Expr::Block(block_expr) => block_expr.typ(parser),
-            Expr::For(for_expr) => for_expr.typ(parser),
-            Expr::If(if_expr) => if_expr.typ(parser)
+            Expr::Field(field_expr) => field_expr.type_check(parser),
+            Expr::Call(call_expr) => call_expr.type_check(parser),
+            Expr::Assign(assign_expr) => assign_expr.type_check(parser),
+            Expr::Block(block_expr) => block_expr.type_check(parser),
+            Expr::For(for_expr) => for_expr.type_check(parser),
+            Expr::If(if_expr) => if_expr.type_check(parser)
         }
     }
 
@@ -82,10 +84,10 @@ impl Expr {
         }
     }
 
-    pub fn mangle_path(&self) -> Result<String, ParseErrKind> {
+    pub fn mangle_path(&self) -> Option<String> {
         match self {
             Expr::Field(field_expr) => field_expr.mangle_path(),
-            _ => Err(ParseErrKind::InvalidPathUse(format!("{:?}", self)))
+            _ => None
         }
     }
 
@@ -96,7 +98,7 @@ impl Expr {
         }
 
         match &first_token.token {
-            TokenType::Identifier(field_name) => Ok(Expr::Field(ExprField::new(field_name.to_string(), None))),
+            TokenType::Identifier(field_name) => path::parse(parser, first_token, None, field_name),
             TokenType::For => r#for::parse(parser, first_token),
             TokenType::If => r#if::parse(parser),
             TokenType::LeftCurly => r#block::parse(parser),
@@ -106,43 +108,21 @@ impl Expr {
 
     pub fn parse_expr(parser: &mut Parser, first_token: &Token) -> Result<Expr, ParseErr> {
         let mut expr = Expr::parse_expr_side(parser, first_token)?;
-        let mut expr_type = map_err_token(expr.typ(parser), first_token)?;
 
         destructive_loop!({
 
             let next_token = parser.collector.next();
             if let Some(operation) = next_token.token.to_operation() {
-
-                let rhs_token = parser.collector.next();
-                let rhs = Box::new(Expr::parse_expr_side(parser, rhs_token)?);
-                let rhs_type = map_err_token(rhs.typ(parser), rhs_token)?;
-
-                // Check if operation is valid between lhs and rhs
-                map_err_token(operation.typ(&expr_type, &rhs_type), rhs_token)?;
-
-                expr = Expr::Binary(ExprBinary::new(operation, Box::new(expr), rhs));
-                expr_type = map_err_token(expr.typ(parser), rhs_token)?;
-
+                expr = binary::parse(parser, first_token, expr, operation)?;
             } else if let Some(assign_op) = next_token.token.to_assign_op() {
-
-                // Check if lhs is able to be used as a path
-                map_err_token(expr.mangle_path(), next_token)?;
-
-                let rhs_token = parser.collector.next();
-                let rhs = Expr::parse_expr(parser, rhs_token)?;
-
-                expr = Expr::Assign(ExprAssign::new(assign_op, Box::new(expr), Box::new(rhs)));
-                expr_type = map_err_token(expr.typ(parser), rhs_token)?;
-
+                expr = assign::parse(parser, first_token, expr, assign_op)?;
             } else {
                 match &next_token.token {
                     TokenType::Dot => {
 
                         let next_token = parser.collector.next();
                         match &next_token.token {
-                            TokenType::Identifier(name) => {
-                                expr = Expr::Field(ExprField::new(name.to_string(), Some(Box::new(expr))));
-                            },
+                            TokenType::Identifier(field_name) => expr = path::parse(parser, next_token, Some(expr), field_name)?,
                             _ => return Err(parser.unexpected_token(next_token, "field"))
                         }
 
@@ -153,8 +133,6 @@ impl Expr {
                         break
                     }
                 }
-
-                expr_type = map_err_token(expr.typ(parser), next_token)?;
             }
         });
 

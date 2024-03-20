@@ -38,17 +38,17 @@ mod tests {
     #[test]
     fn add_numbers() {
         let res_type = Operation::Add.typ(&Type::Number, &Type::Number);
-        assert_eq!(res_type, Ok(Type::Number));
+        assert_eq!(res_type, Some(Type::Number));
     }
 
     #[test]
     fn add_strings() {
         let res_type = Operation::Add.typ(&Type::String, &Type::String);
-        assert_eq!(res_type, Ok(Type::String));
+        assert_eq!(res_type, Some(Type::String));
     }
 
     #[test]
     fn cannot_add_different() {
-        assert!(Operation::Add.typ(&Type::String, &Type::Number).is_err())
+        assert!(Operation::Add.typ(&Type::String, &Type::Number).is_none())
     }
 }

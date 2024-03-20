@@ -15,7 +15,7 @@ fn execute_file(filename: &str, sim_memory: &mut Memory<Type>, memory: &mut Memo
         .expect(&format!("failed to read file `{}`", filename));
     let buf = buf.trim();
 
-    let tokens = tokenize(&String::from("main"), buf);
+    let tokens = tokenize(&String::from(filename), buf);
     let collector = TokenCollector::new(&tokens);
 
     let mut parser = Parser::new(collector, sim_memory);

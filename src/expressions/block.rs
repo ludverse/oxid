@@ -44,12 +44,12 @@ impl ExprBlock {
 }
 
 impl Evaluable for ExprBlock {
-    fn typ(&self, parser: &Parser) -> Result<Type, ParseErrKind> {
+    fn type_check(&self, parser: &Parser) -> Type {
         let last_statement = self.body.last();
 
         match last_statement {
-            Some(Statement::Expr(expr)) => Ok(expr.typ(parser)?),
-            _ => Ok(Type::TempNil)
+            Some(Statement::Expr(expr)) => expr.type_check(parser),
+            _ => Type::TempNil
         }
     }
 

@@ -26,8 +26,8 @@ impl ExprFor {
 }
 
 impl Evaluable for ExprFor {
-    fn typ(&self, _parser: &Parser) -> Result<Type, ParseErrKind> {
-        Ok(Type::TempNil)
+    fn type_check(&self, _parser: &Parser) -> Type {
+        Type::TempNil
     }
 
 

@@ -1,6 +1,7 @@
 use crate::operations::Operation;
 use crate::tokenizer::token::{Token, TokenPos};
 
+#[derive(Debug, Clone)]
 pub struct ParseErr {
     pub err_kind: ParseErrKind,
     pub token_pos: TokenPos
@@ -9,8 +10,8 @@ pub struct ParseErr {
 impl ParseErr {
     pub fn report(&self) -> ! {
         panic!(
-            "[{:?}] error: {} ({})",
-            self.err_kind,
+            "{}: {} ({})",
+            self.token_pos.filename,
             self.err_kind.err_msg(),
             self.token_pos
         )
@@ -21,11 +22,11 @@ impl ParseErr {
 pub enum ParseErrKind {
     UnexpectedChar(char),
     UnexpectedToken(String, String),
-    UnknownField(String),
-    InvalidOperation(Operation, String, String),
+    UnknownField(),
+    IncompatiableOperation(Operation, String, String),
     UnmatchedDelimiter(char),
     InvalidPathUse(String),
-    NotCallable(String)
+    NotCallable()
 }
 
 impl ParseErrKind {
@@ -49,11 +50,11 @@ impl ParseErrKind {
         match self {
             ParseErrKind::UnexpectedChar(c) => format!("unexpected character `{}`", c),
             ParseErrKind::UnexpectedToken(got, expected) => format!("expected {}, got {}", expected, got),
-            ParseErrKind::UnknownField(field) => format!("unknown field `{}`", field),
-            ParseErrKind::InvalidOperation(operation, lhs, rhs) => format!("invalid {:?} on `{}` and `{}`", operation, lhs, rhs),
+            ParseErrKind::UnknownField() => format!("unknown field `i cant be fucked lol`"),
+            ParseErrKind::IncompatiableOperation(operation, lhs, rhs) => format!("incompatiable {:?} operation on {} and {}", operation, lhs, rhs),
             ParseErrKind::UnmatchedDelimiter(c) => format!("unmatched delimiter `{}`", c),
             ParseErrKind::InvalidPathUse(expr_type) => format!("cannot use {} as a path", expr_type),
-            ParseErrKind::NotCallable(mangled_path) => format!("`{}` is not callable", mangled_path)
+            ParseErrKind::NotCallable() => format!("some expr is not callable icbf")
         }
     }
 }
