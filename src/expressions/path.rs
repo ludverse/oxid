@@ -34,11 +34,11 @@ impl Evaluable for ExprField {
         interpreter.memory.get(&mangled).unwrap().clone()
     }
 
-    fn mangle_path(&self) -> Result<String, ParseErrKind> {
+    fn mangle_path(&self) -> Option<String> {
         if let Some(child) = &self.child {
-            Ok(format!("{}.{}", child.mangle_path()?, self.field_name))
+            Some(format!("{}.{}", child.mangle_path()?, self.field_name))
         } else {
-            Ok(self.field_name.to_string())
+            Some(self.field_name.to_string())
         }
     }
 }

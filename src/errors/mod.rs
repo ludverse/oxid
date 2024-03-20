@@ -1,6 +1,7 @@
 use crate::operations::Operation;
 use crate::tokenizer::token::{Token, TokenPos};
 
+#[derive(Debug, Clone)]
 pub struct ParseErr {
     pub err_kind: ParseErrKind,
     pub token_pos: TokenPos
@@ -9,7 +10,8 @@ pub struct ParseErr {
 impl ParseErr {
     pub fn report(&self) -> ! {
         panic!(
-            "error: {} ({})",
+            "{}: {} ({})",
+            self.token_pos.filename,
             self.err_kind.err_msg(),
             self.token_pos
         )

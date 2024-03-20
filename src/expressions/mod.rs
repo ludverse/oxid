@@ -34,8 +34,8 @@ pub trait Evaluable: Debug {
 
     fn eval(&self, interpreter: &mut Interpreter) -> Data;
 
-    fn mangle_path(&self) -> Result<String, ParseErrKind> {
-        Err(ParseErrKind::InvalidPathUse(format!("{:?}", self)))
+    fn mangle_path(&self) -> Option<String> {
+        None
     }
 }
 
@@ -84,10 +84,10 @@ impl Expr {
         }
     }
 
-    pub fn mangle_path(&self) -> Result<String, ParseErrKind> {
+    pub fn mangle_path(&self) -> Option<String> {
         match self {
             Expr::Field(field_expr) => field_expr.mangle_path(),
-            _ => Err(ParseErrKind::InvalidPathUse(format!("{:?}", self)))
+            _ => None
         }
     }
 
@@ -113,15 +113,10 @@ impl Expr {
 
             let next_token = parser.collector.next();
             if let Some(operation) = next_token.token.to_operation() {
-
                 expr = binary::parse(parser, first_token, expr, operation)?;
-
             } else if let Some(assign_op) = next_token.token.to_assign_op() {
-
                 expr = assign::parse(parser, first_token, expr, assign_op)?;
-
             } else {
-
                 match &next_token.token {
                     TokenType::Dot => {
 

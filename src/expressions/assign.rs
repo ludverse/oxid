@@ -61,6 +61,13 @@ impl Evaluable for ExprAssign {
 }
 
 pub fn parse(parser: &mut Parser, first_token: &Token, expr: Expr, assign_op: AssignOp) -> Result<Expr, ParseErr> {
+    // check if lhs is able to be used as a path
+    expr.mangle_path()
+        .ok_or_else(||
+            ParseErrKind::InvalidPathUse(format!("{:?}", expr))
+            .from_token(first_token)
+        )?;
+
     let expr_type = expr.type_check(parser);
 
     let rhs_token = parser.collector.next();
